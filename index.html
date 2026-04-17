@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WC 2026 — Office Bracket Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f5f4f0;
+  --surface:#ffffff;
+  --surface2:#f0efe9;
+  --ink:#111111;
+  --ink2:#444444;
+  --ink3:#888888;
+  --accent:#d4380d;
+  --accent2:#f05a28;
+  --green:#1a7a3c;
+  --green-bg:#edf7f1;
+  --green-border:#b6dfc6;
+  --gold:#c8922a;
+  --gold-bg:#fdf6e7;
+  --border:#e0ddd6;
+  --border2:#c8c5bc;
+  --picked-bg:#1a7a3c;
+  --picked-fg:#ffffff;
+  --wrong-bg:#c0392b;
+  --wrong-fg:#ffffff;
+  --font-display:'Barlow Condensed',sans-serif;
+  --font-body:'Barlow',sans-serif;
+  --font-semi:'Barlow Semi Condensed',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.05);
+  --shadow-md:0 2px 8px rgba(0,0,0,0.1),0 8px 32px rgba(0,0,0,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;min-height:100vh;}
+
+/* ── GATE ── */
+.gate-overlay{position:fixed;inset:0;z-index:200;background:rgba(17,17,17,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;}
+.gate-card{background:var(--surface);border-radius:12px;padding:2.5rem;max-width:420px;width:90%;box-shadow:var(--shadow-md);text-align:center;}
+.gate-flag{font-size:40px;margin-bottom:1rem;}
+.gate-card h2{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:.03em;color:var(--ink);margin-bottom:.4rem;}
+.gate-card p{font-size:13px;color:var(--ink3);line-height:1.6;margin-bottom:1.5rem;}
+.gate-input{width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid var(--border2);background:var(--bg);color:var(--ink);font-size:15px;font-family:var(--font-body);margin-bottom:.75rem;outline:none;transition:border-color .2s;}
+.gate-input:focus{border-color:var(--accent);}
+.gate-submit{width:100%;padding:12px;border-radius:8px;font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:.06em;background:var(--accent);color:#fff;border:none;cursor:pointer;transition:background .15s;}
+.gate-submit:hover{background:var(--accent2);}
+.gate-note{font-size:11px;color:var(--ink3);margin-top:.75rem;}
+
+/* ── HEADER ── */
+.page-header{background:var(--ink);color:#fff;border-bottom:3px solid var(--accent);}
+.header-inner{max-width:1280px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:stretch;justify-content:space-between;gap:0;min-height:68px;}
+.header-brand{display:flex;align-items:center;gap:14px;padding:1rem 0;}
+.header-badge{background:var(--accent);color:#fff;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:.12em;padding:3px 8px;border-radius:3px;text-transform:uppercase;}
+.header-title{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:.04em;color:#fff;line-height:1;}
+.header-title span{color:var(--accent2);}
+.header-meta{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.08em;margin-top:3px;}
+.header-player{display:flex;align-items:center;gap:8px;padding:1rem 0;border-left:1px solid rgba(255,255,255,0.1);padding-left:1.5rem;}
+.player-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--font-display);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.player-info{display:flex;flex-direction:column;}
+.player-name-label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.06em;font-family:var(--font-semi);}
+.player-name-val{font-size:15px;font-weight:600;color:#fff;font-family:var(--font-semi);}
+
+/* ── COUNTDOWN BANNER ── */
+.countdown-banner{background:var(--accent);color:#fff;padding:8px 1.5rem;text-align:center;}
+.countdown-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
+.countdown-label{font-family:var(--font-semi);font-size:12px;font-weight:600;letter-spacing:.08em;opacity:.9;}
+.countdown-timer{display:flex;align-items:center;gap:8px;}
+.countdown-unit{display:flex;flex-direction:column;align-items:center;}
+.countdown-num{font-family:var(--font-display);font-size:22px;font-weight:700;line-height:1;}
+.countdown-unit-label{font-size:9px;letter-spacing:.1em;opacity:.75;font-family:var(--font-semi);}
+.countdown-sep{font-family:var(--font-display);font-size:18px;opacity:.5;margin-bottom:8px;}
+.countdown-deadline{font-family:var(--font-semi);font-size:11px;opacity:.85;}
+.countdown-expired{font-family:var(--font-semi);font-size:13px;font-weight:600;letter-spacing:.06em;}
+
+/* ── LAYOUT ── */
+.page-body{max-width:1280px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start;}
+@media(max-width:900px){.page-body{grid-template-columns:1fr;}}
+
+/* ── SCORE BAR ── */
+.score-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.25rem;box-shadow:var(--shadow);}
+.score-cell{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+.score-cell-label{font-size:12px;letter-spacing:.1em;color:var(--ink3);font-family:var(--font-semi);font-weight:600;text-transform:uppercase;}
+.score-cell-val{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--ink);line-height:1;}
+.score-cell-val.accent{color:var(--accent);}
+.score-cell-val.green{color:var(--green);}
+.score-cell-val.gold{color:var(--gold);}
+
+/* ── PROGRESS ── */
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;}
+.progress-fill{height:4px;background:var(--green);border-radius:2px;transition:width .35s ease;}
+.progress-label{font-size:13px;color:var(--ink3);font-family:var(--font-semi);white-space:nowrap;}
+
+/* ── TABS ── */
+.bracket-tabs{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.25rem;box-shadow:var(--shadow);}
+.btab{flex:1;padding:8px 4px;font-family:var(--font-display);font-size:14px;font-weight:600;letter-spacing:.03em;background:none;border:none;cursor:pointer;color:var(--ink3);border-right:1px solid var(--border);transition:all .15s;white-space:nowrap;text-align:center;}
+.btab:last-child{border-right:none;}
+.btab:hover{background:var(--surface2);color:var(--ink);}
+.btab.active{background:var(--accent);color:#fff;}
+.btab.locked{opacity:.35;cursor:not-allowed;}
+.btab.complete{background:var(--green) !important;color:#fff !important;}
+.btab.complete::after{content:' ✓';font-size:11px;}
+.btab-pts{display:block;font-size:11px;font-family:var(--font-body);font-weight:400;opacity:.75;letter-spacing:.03em;margin-top:1px;}
+.btab-dates{display:block;font-size:10px;font-family:var(--font-body);font-weight:400;opacity:.65;letter-spacing:.01em;margin-top:1px;}
+
+/* ── ROUND HEADER ── */
+.round-header{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:1rem;box-shadow:var(--shadow);}
+.round-header-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.round-title-row{display:flex;align-items:center;gap:8px;}
+.rt-badge{font-size:10px;font-weight:600;letter-spacing:.1em;font-family:var(--font-semi);padding:4px 10px;border-radius:20px;text-transform:uppercase;}
+.rt-open{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.rt-locked{background:#fef3cd;color:#856404;border:1px solid #fce5a0;}
+.rt-scored{background:var(--surface2);color:var(--ink3);border:1px solid var(--border);}
+.round-date-range{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.round-date-pill{font-size:13px;font-family:var(--font-semi);font-weight:500;color:var(--ink3);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 10px;display:flex;align-items:center;gap:5px;}
+.round-date-pill svg{flex-shrink:0;}
+.round-deadline-pill{font-size:13px;font-family:var(--font-semi);font-weight:600;color:var(--accent);background:rgba(212,56,13,0.06);border:1px solid rgba(212,56,13,0.2);border-radius:4px;padding:3px 10px;}
+.round-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.rt-btn{font-family:var(--font-semi);font-size:12px;font-weight:600;padding:7px 14px;border-radius:6px;cursor:pointer;border:none;background:var(--accent);color:#fff;transition:background .15s;}
+.rt-btn:hover{background:var(--accent2);}
+.rt-btn.ghost{background:none;border:1px solid var(--border2);color:var(--ink3);}
+.rt-btn.ghost:hover{border-color:var(--ink3);color:var(--ink);}
+.rt-note{font-size:13px;color:var(--ink3);}
+.scored-banner{background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:14px;color:var(--green);font-family:var(--font-semi);font-weight:600;}
+
+/* ── SECTIONS ── */
+.bsection{display:none;}
+.bsection.active{display:block;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+
+/* ── GROUPS ── */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.group-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;box-shadow:var(--shadow);}
+.group-heading{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.group-heading-letter{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.g-match{display:flex;align-items:center;gap:4px;margin-bottom:4px;}
+.g-match:last-child{margin-bottom:0;}
+.pick-btn{flex:1;padding:5px 5px;border:1px solid var(--border);border-radius:5px;font-size:14px;font-weight:500;cursor:pointer;text-align:center;background:transparent;color:var(--ink2);font-family:var(--font-semi);transition:all .12s;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pick-btn:hover:not([disabled]){border-color:var(--green);color:var(--green);}
+.pick-btn.picked{background:var(--picked-bg) !important;color:var(--picked-fg) !important;border-color:var(--picked-bg) !important;font-weight:600;}
+.pick-btn.correct{background:var(--picked-bg) !important;color:#fff !important;border-color:var(--picked-bg) !important;font-weight:600;box-shadow:0 0 0 2px rgba(26,122,60,0.25);}
+.pick-btn.wrong{background:var(--wrong-bg) !important;color:var(--wrong-fg) !important;border-color:var(--wrong-bg) !important;text-decoration:line-through;}
+.pick-btn.result-shown{border-color:var(--green);color:var(--green);background:var(--green-bg);}
+.pick-btn[disabled]{cursor:default;}
+.vs-sep{font-size:9px;color:var(--ink3);min-width:14px;text-align:center;font-family:var(--font-semi);flex-shrink:0;}
+
+/* ── KO ── */
+.ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px;}
+.ko-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;box-shadow:var(--shadow);}
+.ko-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.ko-match-lbl{font-family:var(--font-semi);font-size:13px;font-weight:600;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;}
+.ko-pts-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;font-family:var(--font-semi);background:var(--gold-bg);color:var(--gold);border:1px solid #f0d898;}
+.ko-match{display:flex;align-items:center;gap:6px;}
+.ko-btn{flex:1;padding:8px 6px;border:1px solid var(--border);border-radius:6px;font-size:16px;font-weight:500;cursor:pointer;text-align:center;background:transparent;color:var(--ink2);font-family:var(--font-semi);transition:all .12s;}
+.ko-btn:hover:not([disabled]):not(.tbd){border-color:var(--green);color:var(--green);}
+.ko-btn.picked{background:var(--picked-bg) !important;color:var(--picked-fg) !important;border-color:var(--picked-bg) !important;font-weight:600;}
+.ko-btn.correct{background:var(--picked-bg) !important;color:#fff !important;border-color:var(--picked-bg) !important;font-weight:600;box-shadow:0 0 0 2px rgba(26,122,60,0.25);}
+.ko-btn.wrong{background:var(--wrong-bg) !important;color:var(--wrong-fg) !important;border-color:var(--wrong-bg) !important;text-decoration:line-through;}
+.ko-btn.tbd{color:var(--ink3);cursor:default;font-style:italic;font-size:11px;border-style:dashed;background:var(--surface2);}
+.ko-btn[disabled]{cursor:default;}
+
+/* ── CHAMPION ── */
+.champ-section{margin-top:1.5rem;padding:1.5rem;background:var(--gold-bg);border:1px solid #f0d898;border-radius:10px;}
+.champ-section-title{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:.04em;color:var(--gold);margin-bottom:.25rem;}
+.champ-section-sub{font-size:13px;color:var(--ink3);margin-bottom:1rem;}
+.champ-display{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #f0d898;border-radius:8px;padding:12px 16px;margin-bottom:1rem;}
+.champ-trophy-icon{font-size:28px;}
+.champ-team-name{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--gold);letter-spacing:.03em;}
+.champ-team-empty{font-size:13px;color:var(--ink3);font-style:italic;}
+.champ-sel select{font-size:13px;padding:8px 12px;border-radius:6px;border:1px solid var(--border2);background:#fff;color:var(--ink);cursor:pointer;font-family:var(--font-body);}
+
+/* ── SUBMIT ── */
+.submit-row{margin-top:1.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.submit-btn{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:.06em;padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .15s;}
+.submit-btn:hover{background:var(--accent2);}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;}
+.submit-note{font-size:14px;color:var(--ink3);}
+.submit-ok{display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:12px 16px;margin-top:.75rem;font-size:13px;color:var(--green);font-weight:600;font-family:var(--font-semi);}
+
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:1rem;position:sticky;top:1.5rem;}
+.sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.sidebar-card-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sidebar-card-title{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:.04em;color:var(--ink);}
+.sidebar-refresh{font-size:11px;color:var(--ink3);background:none;border:1px solid var(--border);border-radius:4px;padding:3px 8px;cursor:pointer;font-family:var(--font-semi);}
+.sidebar-refresh:hover{border-color:var(--ink3);color:var(--ink);}
+
+/* ── SCHEDULE CARD ── */
+.schedule-list{padding:0;}
+.schedule-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.schedule-row:last-child{border-bottom:none;}
+.schedule-row.current{background:rgba(212,56,13,0.04);border-left:3px solid var(--accent);}
+.schedule-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+.schedule-row.current .schedule-dot{background:var(--accent);}
+.schedule-round-name{font-family:var(--font-semi);font-size:14px;font-weight:600;color:var(--ink);flex:1;}
+.schedule-dates{font-size:13px;color:var(--ink3);}
+.schedule-pts{font-size:10px;font-weight:600;color:var(--gold);font-family:var(--font-semi);background:var(--gold-bg);padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.schedule-deadline{font-size:10px;color:var(--accent);font-weight:600;font-family:var(--font-semi);}
+
+/* ── LEADERBOARD ── */
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:var(--surface2);}
+.lb-rank{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ink3);width:24px;text-align:center;flex-shrink:0;}
+.lb-row.r1 .lb-rank{color:var(--gold);}
+.lb-row.r2 .lb-rank{color:#9e9e9e;}
+.lb-row.r3 .lb-rank{color:#a0522d;}
+.lb-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink3);display:flex;align-items:center;justify-content:center;}
+.lb-row.r1 .lb-avatar{background:var(--gold-bg);border-color:#f0d898;color:var(--gold);}
+.lb-info{flex:1;min-width:0;}
+.lb-name{font-weight:600;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-champ{font-size:12px;color:var(--ink3);}
+.lb-pts{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.lb-empty{padding:2rem;text-align:center;font-size:13px;color:var(--ink3);}
+.lb-you{background:rgba(212,56,13,0.04);border-left:3px solid var(--accent);}
+
+/* ── SCORING INFO ── */
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+.info-row:last-child{border-bottom:none;}
+.info-row-label{color:var(--ink3);font-family:var(--font-semi);}
+.info-row-val{font-weight:600;color:var(--ink);font-family:var(--font-semi);}
+.info-row-val.accent{color:var(--accent);}
+
+/* ── ADMIN ── */
+.config-section{padding:14px;}
+.config-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink3);font-family:var(--font-semi);margin-bottom:6px;text-transform:uppercase;}
+.config-input{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg);color:var(--ink);font-size:12px;font-family:var(--font-body);margin-bottom:6px;outline:none;}
+.config-input:focus{border-color:var(--accent);}
+.config-save{font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;background:var(--ink);color:#fff;border:none;cursor:pointer;font-family:var(--font-semi);}
+.config-save:hover{background:#333;}
+
+@media(max-width:600px){
+  .score-bar{grid-template-columns:1fr 1fr;}
+  .bracket-tabs{flex-wrap:wrap;}
+  .btab{min-width:calc(33% - 1px);}
+  .page-body{padding:1rem;}
+  .countdown-timer{gap:6px;}
+}
+
+/* ── FONT SIZE CONTROLS ── */
+.font-controls{
+  display:flex;align-items:center;gap:6px;padding:6px 1.5rem;
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  justify-content:flex-end;
+}
+.font-ctrl-label{font-size:12px;color:var(--ink3);font-family:var(--font-semi);margin-right:2px;}
+.font-ctrl-btn{
+  width:30px;height:30px;border-radius:6px;border:1px solid var(--border2);
+  background:var(--surface);color:var(--ink);cursor:pointer;
+  font-family:var(--font-display);font-size:16px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+  padding:0;line-height:1;
+}
+.font-ctrl-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.font-ctrl-size{font-size:12px;color:var(--ink3);font-family:var(--font-mono,monospace);min-width:36px;text-align:center;}
+
+@keyframes champIn{
+  from{opacity:0;transform:scale(.92);}
+  to{opacity:1;transform:scale(1);}
+}
+@keyframes pulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.05);}
+}
+#champ-reveal-name{animation:pulse 2s ease-in-out infinite;}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div class="gate-overlay" id="name-gate">
+  <div class="gate-card">
+    <div class="gate-flag">⚽</div>
+    <h2>2026 WORLD CUP<br/>BRACKET CHALLENGE</h2>
+    <p>Enter your name to join the office pool, make your picks, and compete on the leaderboard.</p>
+    <input class="gate-input" id="name-input" type="text" placeholder="Your name" maxlength="40" onkeydown="if(event.key==='Enter')enterBracket()"/>
+    <button class="gate-submit" onclick="enterBracket()">ENTER THE CHALLENGE</button>
+    <p class="gate-note">Picks lock June 11, 2026 at 3:00 PM ET · Tournament starts June 11</p>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span class="header-badge">Office Pool</span>
+          <span class="header-title">WC 2026 <span>BRACKET</span></span>
+        </div>
+        <div class="header-meta">USA · CANADA · MEXICO &nbsp;·&nbsp; JUN 11 – JUL 19, 2026</div>
+      </div>
+    </div>
+    <div class="header-player" id="header-player" style="display:none;">
+      <div class="player-avatar" id="player-avatar">?</div>
+      <div class="player-info">
+        <span class="player-name-label">Signed in as</span>
+        <span class="player-name-val" id="player-name-display">—</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- COUNTDOWN BANNER -->
+<div class="countdown-banner">
+  <div class="countdown-inner">
+    <span class="countdown-label">PICKS CLOSE IN</span>
+    <div class="countdown-timer" id="countdown-timer">
+      <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-unit-label">DAYS</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-unit-label">HRS</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-unit-label">MIN</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-unit-label">SEC</span></div>
+    </div>
+    <span class="countdown-deadline">Deadline: June 11, 2026 · 3:00 PM ET (before first kickoff)</span>
+  </div>
+</div>
+
+
+<!-- FONT SIZE CONTROLS -->
+<div class="font-controls">
+  <span class="font-ctrl-label">Text size:</span>
+  <button class="font-ctrl-btn" onclick="adjustFont(-1)" title="Smaller">A-</button>
+  <span class="font-ctrl-size" id="font-size-display">18px</span>
+  <button class="font-ctrl-btn" onclick="adjustFont(1)" title="Larger">A+</button>
+</div>
+
+<!-- MAIN -->
+<div class="page-body">
+  <div class="main-col">
+
+    <!-- SCORE BAR -->
+    <div class="score-bar">
+      <div class="score-cell"><span class="score-cell-label">Group pts</span><span class="score-cell-val green" id="tile-grp">0</span></div>
+      <div class="score-cell"><span class="score-cell-label">Knockout pts</span><span class="score-cell-val" id="tile-ko">—</span></div>
+      <div class="score-cell"><span class="score-cell-label">Total score</span><span class="score-cell-val accent" id="tile-total">0</span></div>
+      <div class="score-cell"><span class="score-cell-label">Max possible</span><span class="score-cell-val" style="color:var(--ink3);font-size:22px;">1,052</span></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="progress-label" id="prog-label">0 / 104 picks</span>
+    </div>
+
+    <!-- TABS -->
+    <div class="bracket-tabs">
+      <button class="btab active" id="tab-group" onclick="showTab('group')">GROUPS<span class="btab-pts">1 pt each</span><span class="btab-dates">Jun 11–27</span></button>
+      <button class="btab locked" id="tab-r32" onclick="tryTab('r32')">RD 32<span class="btab-pts">5 pts</span><span class="btab-dates">Jun 28–30</span></button>
+      <button class="btab locked" id="tab-r16" onclick="tryTab('r16')">RD 16<span class="btab-pts">10 pts</span><span class="btab-dates">Jul 4–8</span></button>
+      <button class="btab locked" id="tab-qf" onclick="tryTab('qf')">QF<span class="btab-pts">20 pts</span><span class="btab-dates">Jul 9–11</span></button>
+      <button class="btab locked" id="tab-sf" onclick="tryTab('sf')">SF<span class="btab-pts">50 pts</span><span class="btab-dates">Jul 14–15</span></button>
+      <button class="btab locked" id="tab-final" onclick="tryTab('final')">FINAL<span class="btab-pts">100+50</span><span class="btab-dates">Jul 19</span></button>
+    </div>
+
+    <!-- GROUP STAGE -->
+    <div class="bsection active" id="sec-group">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open" id="grp-badge">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Jun 11 – Jun 27, 2026
+              </span>
+              <span class="round-deadline-pill">⚑ Picks close Jun 11 · 3:00 PM ET</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions">
+    
+          <button class="rt-btn ghost" onclick="resetAll()">Reset all</button>
+          <span class="rt-note" id="grp-rt-note">Pick the winner of all 72 group stage matches · 1 pt each</span>
+        </div>
+      </div>
+      <div class="scored-banner" id="grp-scored-banner" style="display:none;"></div>
+      <div class="groups-grid" id="groups-grid"></div>
+      <div style="margin-top:1.25rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button class="rt-btn" id="grp-submit-btn" onclick="submitGroupPicks()">Save my group stage picks</button>
+        <span style="font-size:13px;color:var(--ink3);" id="grp-submit-note">You can update these any time before June 11</span>
+      </div>
+      <div style="display:none;margin-top:.75rem;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);font-family:var(--font-semi);font-weight:600;" id="grp-submit-ok">✓ Group stage picks saved! Come back after the group stage ends to make your knockout picks.</div>
+
+    </div>
+
+    <!-- KO ROUNDS -->
+    <div class="bsection" id="sec-r32">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jun 28 – Jun 30, 2026</span>
+              <span class="round-deadline-pill">⚑ Pick before Jun 28 · first kickoff</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions"><span class="rt-note">Pick the winner of all 16 matches · 5 pts each · Picks cascade from your group stage results</span></div>
+      </div>
+      <div class="ko-grid" id="r32-grid"></div>
+    </div>
+
+    <div class="bsection" id="sec-r16">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 4 – Jul 8, 2026</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 4 · first kickoff</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions"><span class="rt-note">8 matches · 10 pts each · Cascades from your Round of 32 picks</span></div>
+      </div>
+      <div class="ko-grid" id="r16-grid"></div>
+    </div>
+
+    <div class="bsection" id="sec-qf">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 9 – Jul 11, 2026</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 9 · first kickoff</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions"><span class="rt-note">4 matches · 20 pts each · Cascades from your Round of 16 picks</span></div>
+      </div>
+      <div class="ko-grid" id="qf-grid"></div>
+    </div>
+
+    <div class="bsection" id="sec-sf">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 14 – Jul 15, 2026</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 14 · first kickoff</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions"><span class="rt-note">2 matches · 50 pts each · Cascades from your Quarterfinal picks</span></div>
+      </div>
+      <div class="ko-grid" id="sf-grid"></div>
+    </div>
+
+    <div class="bsection" id="sec-final">
+      <div class="round-header">
+        <div class="round-header-top">
+          <div class="round-title-row">
+            <span class="rt-badge rt-open">Open for picks</span>
+            <div class="round-date-range">
+              <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 19, 2026 · MetLife Stadium, NJ</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 19 · kickoff</span>
+            </div>
+          </div>
+        </div>
+        <div class="round-actions"><span class="rt-note">1 match · 100 pts + 50 pt champion bonus · Cascades from your Semifinal picks</span></div>
+      </div>
+      <div class="ko-grid" id="final-grid"></div>
+      <div id="champ-reveal" style="display:none;margin-top:2rem;text-align:center;padding:2rem 1rem;background:linear-gradient(135deg,#fdf6e7 0%,#fff8ee 100%);border:2px solid #f0d898;border-radius:16px;animation:champIn .6s ease;">
+        <div style="font-family:var(--font-mono,monospace);font-size:11px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:.75rem;">🏆 Your World Cup Champion 🏆</div>
+        <div id="champ-confetti" style="font-size:32px;margin-bottom:.5rem;">🎉</div>
+        <div id="champ-reveal-name" style="font-family:var(--font-display);font-size:clamp(36px,8vw,72px);font-weight:700;color:var(--gold);letter-spacing:.04em;line-height:1;text-shadow:0 2px 20px rgba(200,146,42,0.3);"></div>
+        <div style="font-family:var(--font-semi);font-size:13px;color:var(--ink3);margin-top:.75rem;">World Cup Champion · 100 points</div>
+      </div>
+      <div class="submit-row">
+        <button class="submit-btn" id="submit-btn" onclick="submitPicks()">Submit My Bracket</button>
+        <span class="submit-note" id="submit-note">Complete all 104 picks first</span>
+      </div>
+      <div class="submit-ok" id="submit-ok">✓ Bracket submitted successfully — good luck!</div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- LEADERBOARD -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">
+        <span class="sidebar-card-title">Leaderboard</span>
+        <button class="sidebar-refresh" onclick="loadLeaderboard()">↻ Refresh</button>
+      </div>
+      <div id="lb-content">
+        <div class="lb-empty" id="lb-empty">No entries yet.<br/>Be first to submit!</div>
+        <div id="lb-rows"></div>
+      </div>
+    </div>
+
+    <!-- TOURNAMENT SCHEDULE -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">
+        <span class="sidebar-card-title">Schedule &amp; Scoring</span>
+      </div>
+      <div class="schedule-list">
+        <div class="schedule-row current">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Group Stage</div>
+            <div class="schedule-dates">Jun 11 – Jun 27</div>
+            <div class="schedule-deadline">Picks close Jun 11 · 3 PM ET</div>
+          </div>
+          <span class="schedule-pts">1 pt</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Round of 32</div>
+            <div class="schedule-dates">Jun 28 – Jun 30</div>
+          </div>
+          <span class="schedule-pts">5 pts</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Round of 16</div>
+            <div class="schedule-dates">Jul 4 – Jul 8</div>
+          </div>
+          <span class="schedule-pts">10 pts</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Quarterfinals</div>
+            <div class="schedule-dates">Jul 9 – Jul 11</div>
+          </div>
+          <span class="schedule-pts">20 pts</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Semifinals</div>
+            <div class="schedule-dates">Jul 14 – Jul 15</div>
+          </div>
+          <span class="schedule-pts">50 pts</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">The Final</div>
+            <div class="schedule-dates">Jul 19 · MetLife Stadium</div>
+          </div>
+          <span class="schedule-pts">100 pts</span>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-dot"></div>
+          <div style="flex:1;">
+            <div class="schedule-round-name">Champion Bonus</div>
+            <div class="schedule-dates">Picked with Final</div>
+          </div>
+          <span class="schedule-pts">+50 pts</span>
+        </div>
+        <div class="info-row" style="background:var(--surface2);"><span class="info-row-label" style="font-weight:600;">Max possible</span><span class="info-row-val accent">1,052 pts</span></div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+
+<script>
+var GROUPS={
+  A:["Mexico","South Africa","South Korea","Czechia"],
+  B:["Canada","Bosnia & Herz.","Qatar","Switzerland"],
+  C:["Brazil","Morocco","Haiti","Scotland"],
+  D:["USA","Paraguay","Australia","Türkiye"],
+  E:["Germany","Curaçao","Côte d'Ivoire","Ecuador"],
+  F:["Netherlands","Japan","Sweden","Tunisia"],
+  G:["Belgium","Egypt","Iran","New Zealand"],
+  H:["Spain","Cape Verde","Saudi Arabia","Uruguay"],
+  I:["France","Senegal","Iraq","Norway"],
+  J:["Argentina","Algeria","Austria","Jordan"],
+  K:["Portugal","DR Congo","Uzbekistan","Colombia"],
+  L:["England","Croatia","Ghana","Panama"]
+};
+var KO_ROUNDS=['r32','r16','qf','sf','final'];
+var KO_LABELS={r32:'Round of 32',r16:'Round of 16',qf:'Quarterfinal',sf:'Semifinal',final:'Final'};
+var KO_PTS={r32:5,r16:10,qf:20,sf:50,final:100};
+var KO_COUNT={r32:16,r16:8,qf:4,sf:2,final:1};
+var ALL_TABS=['group','r32','r16','qf','sf','final'];
+
+var playerName='',gPicks={},gResults={},advTeams=[],koPicks={r32:{},r16:{},qf:{},sf:{},final:{}};
+var champPick='',grpLocked=false,grpScored=false,grpPoints=0;
+var sheetsUrl='https://script.google.com/macros/s/AKfycbzCpR0Btz-1saD_x9EmEAhH7jG3phr7KWBYVdyZVeZPO_QTv84cqN-nflCaYTPjV0CKXg/exec';
+
+
+// ── COUNTDOWN ──────────────────────────────────────────────────────
+var DEADLINE = new Date('2026-06-11T19:00:00Z'); // 3 PM ET = 19:00 UTC
+function updateCountdown(){
+  var now=new Date(), diff=DEADLINE-now;
+  if(diff<=0){
+    document.getElementById('countdown-timer').innerHTML='<span class="countdown-expired">PICKS ARE CLOSED</span>';
+    return;
+  }
+  var d=Math.floor(diff/86400000);
+  var h=Math.floor((diff%86400000)/3600000);
+  var m=Math.floor((diff%3600000)/60000);
+  var s=Math.floor((diff%60000)/1000);
+  document.getElementById('cd-days').textContent=String(d).padStart(2,'0');
+  document.getElementById('cd-hours').textContent=String(h).padStart(2,'0');
+  document.getElementById('cd-mins').textContent=String(m).padStart(2,'0');
+  document.getElementById('cd-secs').textContent=String(s).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown,1000);
+
+// ── ENTER ──────────────────────────────────────────────────────────
+function enterBracket(){
+  var n=document.getElementById('name-input').value.trim();
+  if(!n){document.getElementById('name-input').focus();return;}
+  playerName=n;
+  document.getElementById('name-gate').style.display='none';
+  document.getElementById('player-name-display').textContent=playerName;
+  document.getElementById('player-avatar').textContent=playerName.charAt(0).toUpperCase();
+  document.getElementById('header-player').style.display='flex';
+  loadPreviousPicks(function(){
+    renderGroups();updateScore();loadLeaderboard();loadAdvancingTeams();
+  });
+}
+
+function loadPreviousPicks(callback) {
+  if (!sheetsUrl) { callback(); return; }
+  // Show loading state on the gate submit area
+  var note = document.getElementById('grp-rt-note');
+  fetch(sheetsUrl + '?action=getPicks&name=' + encodeURIComponent(playerName))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.found) {
+        // Restore group picks
+        if (data.groupPicks) {
+          try { gPicks = JSON.parse(data.groupPicks); } catch(e) { gPicks = {}; }
+        }
+        // Restore knockout picks
+        if (data.koPicks) {
+          try {
+            var kp = JSON.parse(data.koPicks);
+            ['r32','r16','qf','sf','final'].forEach(function(r) {
+              koPicks[r] = kp[r] || {};
+            });
+          } catch(e) {}
+        }
+        // Restore champion (from final pick)
+        var finalWinner = koPicks.final && koPicks.final['final_0'];
+        if (finalWinner) {
+          champPick = finalWinner;
+          showChampionReveal(finalWinner);
+        }
+        // Show a welcome back message
+        var banner = document.getElementById('grp-submit-ok');
+        if (banner && Object.values(gPicks).filter(Boolean).length > 0) {
+          banner.style.display = 'block';
+          banner.textContent = '✓ Welcome back! Your previous picks have been loaded.';
+        }
+      }
+      callback();
+    })
+    .catch(function() { callback(); }); // silently fail, just start fresh
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function showTab(id){
+  ALL_TABS.forEach(function(r){
+    var s=document.getElementById('sec-'+r);if(s)s.classList.remove('active');
+    var t=document.getElementById('tab-'+r);if(t)t.classList.remove('active');
+  });
+  document.getElementById('sec-'+id).classList.add('active');
+  var tb=document.getElementById('tab-'+id);if(tb)tb.classList.add('active');
+  if(id!=='group')renderKO(id);
+  
+}
+function tryTab(id){var el=document.getElementById('tab-'+id);if(el&&el.classList.contains('locked'))return;showTab(id);}
+function unlockTab(id){var el=document.getElementById('tab-'+id);if(el)el.classList.remove('locked');}
+
+// ── GROUPS ────────────────────────────────────────────────────────
+function getGroupMatches(teams){
+  var m=[];
+  for(var i=0;i<teams.length;i++)for(var j=i+1;j<teams.length;j++)m.push([teams[i],teams[j]]);
+  return m;
+}
+function mkey(g,a,b){return g+'|'+a+'|'+b;}
+function gBtnCls(team,key){
+  var pick=gPicks[key]||'',result=gResults[key]||'';
+  if(grpScored&&result){
+    if(team===pick&&team===result)return 'pick-btn correct';
+    if(team===pick)return 'pick-btn wrong';
+    if(team===result)return 'pick-btn result-shown';
+  }else if(grpLocked){
+    if(team===result)return 'pick-btn result-shown';
+    if(team===pick)return 'pick-btn picked';
+  }else{if(team===pick)return 'pick-btn picked';}
+  return 'pick-btn';
+}
+function renderGroups(){
+  var grid=document.getElementById('groups-grid');grid.innerHTML='';
+  Object.keys(GROUPS).forEach(function(g){
+    var card=document.createElement('div');card.className='group-card';
+    var head=document.createElement('div');head.className='group-heading';
+    var letter=document.createElement('span');letter.className='group-heading-letter';letter.textContent=g;
+    head.appendChild(letter);head.appendChild(document.createTextNode(' Group '+g));card.appendChild(head);
+    getGroupMatches(GROUPS[g]).forEach(function(pair){
+      var a=pair[0],b=pair[1],key=mkey(g,a,b);
+      var row=document.createElement('div');row.className='g-match';
+      var bA=makeGBtn(a,key),vs=document.createElement('span'),bB=makeGBtn(b,key);
+      vs.className='vs-sep';vs.textContent='vs';
+      row.appendChild(bA);row.appendChild(vs);row.appendChild(bB);card.appendChild(row);
+    });
+    grid.appendChild(card);
+  });
+}
+function makeGBtn(team,key){
+  var btn=document.createElement('button');btn.className=gBtnCls(team,key);btn.textContent=team;btn.title=team;
+  if(!grpLocked){
+    btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};
+  }else if(!grpScored){
+    btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};
+  }else{btn.disabled=true;}
+  return btn;
+}
+function lockGroupStage(){
+  grpLocked=true;
+  var b=document.getElementById('grp-badge');b.className='rt-badge rt-locked';b.textContent='Picks locked';
+  document.getElementById('grp-lock-btn').style.display='none';
+  document.getElementById('grp-rt-note').textContent='Picks are locked. Results will be entered by the admin.';
+
+  renderGroups();
+}
+function scoreGroupStage(){
+  grpScored=true;grpPoints=0;
+  Object.keys(gPicks).forEach(function(k){if(gPicks[k]&&gResults[k]&&gPicks[k]===gResults[k])grpPoints++;});
+  var seen={};advTeams=[];
+  Object.values(gResults).filter(Boolean).forEach(function(t){if(!seen[t]){seen[t]=true;advTeams.push(t);}});
+  var allT=[];Object.keys(GROUPS).forEach(function(g){GROUPS[g].forEach(function(t){if(!seen[t]&&allT.indexOf(t)<0)allT.push(t);});});
+  var ai=0;while(advTeams.length<32&&ai<allT.length){advTeams.push(allT[ai++]);}
+  advTeams=advTeams.slice(0,32);
+  var b=document.getElementById('grp-badge');b.className='rt-badge rt-scored';b.textContent='Scored';
+
+  var banner=document.getElementById('grp-scored-banner');
+  banner.style.display='block';
+  banner.textContent='Group stage complete — you scored '+grpPoints+' points from '+Object.values(gPicks).filter(Boolean).length+' picks.';
+  KO_ROUNDS.forEach(function(r){unlockTab(r);});
+  renderGroups();updateScore();showTab('r32');
+}
+
+// ── KNOCKOUT ──────────────────────────────────────────────────────
+function getKOTeams(round){
+  if(round==='r32') {
+    // Prefer real advancing teams from admin scoring, fall back to locally built list
+    if(realAdvancingTeams.length > 0) return realAdvancingTeams.slice();
+    return advTeams.slice();
+  }
+  var prev=KO_ROUNDS[KO_ROUNDS.indexOf(round)-1];
+  var out=[];for(var i=0;i<KO_COUNT[prev];i++)out.push(koPicks[prev][prev+'_'+i]||null);
+  return out;
+}
+function kBtnCls(team,key,round){
+  if(!team)return 'ko-btn tbd';
+  return 'ko-btn'+(koPicks[round][key]===team?' picked':'');
+}
+function renderKO(round){
+  if(round==='group')return;
+  var grid=document.getElementById(round+'-grid');if(!grid)return;
+  grid.innerHTML='';
+  var teams=getKOTeams(round),count=KO_COUNT[round];
+  for(var i=0;i<count;i++){
+    (function(idx){
+      var a=teams[idx*2]||null,b=teams[idx*2+1]||null,key=round+'_'+idx;
+      var card=document.createElement('div');card.className='ko-card';
+      var head=document.createElement('div');head.className='ko-card-head';
+      var lbl=document.createElement('span');lbl.className='ko-match-lbl';lbl.textContent=KO_LABELS[round]+' · Match '+(idx+1);
+      var pts=document.createElement('span');pts.className='ko-pts-tag';pts.textContent=KO_PTS[round]+' pts';
+      head.appendChild(lbl);head.appendChild(pts);card.appendChild(head);
+      var matchDiv=document.createElement('div');matchDiv.className='ko-match';
+      var bA=makeKBtn(a,key,round,idx),vs=document.createElement('span'),bB=makeKBtn(b,key,round,idx);
+      vs.className='vs-sep';vs.textContent='vs';
+      matchDiv.appendChild(bA);matchDiv.appendChild(vs);matchDiv.appendChild(bB);
+      card.appendChild(matchDiv);grid.appendChild(card);
+    })(i);
+  }
+}
+function makeKBtn(team,key,round,idx){
+  var btn=document.createElement('button');btn.className=kBtnCls(team,key,round);btn.textContent=team||'TBD';
+  if(!team){btn.disabled=true;return btn;}
+  btn.onclick=function(){
+    var prev=koPicks[round][key];
+    if(prev===team){delete koPicks[round][key];cascadeRemove(round,idx,team);}
+    else{if(prev)cascadeRemove(round,idx,prev);koPicks[round][key]=team;}
+    renderKO(round);updateScore();
+    if(round==='final'){
+      // Auto-set champion to whoever wins the Final
+      var winner=koPicks.final['final_0']||'';
+      showChampionReveal(winner);
+    }
+  };
+  return btn;
+}
+function cascadeRemove(fromRound,matchIdx,removedTeam){
+  var ri=KO_ROUNDS.indexOf(fromRound),slot=Math.floor(matchIdx/2);
+  for(var i=ri+1;i<KO_ROUNDS.length;i++){
+    var r=KO_ROUNDS[i],k=r+'_'+slot;
+    if(koPicks[r][k]===removedTeam){delete koPicks[r][k];slot=Math.floor(slot/2);}else break;
+  }
+  if(champPick===removedTeam){
+    champPick='';
+    var reveal=document.getElementById('champ-reveal');
+    if(reveal) reveal.style.display='none';
+  }
+}
+
+// ── CHAMPION ──────────────────────────────────────────────────────
+
+// ── SCORE ─────────────────────────────────────────────────────────
+function countPicks(){
+  var g=Object.values(gPicks).filter(Boolean).length;
+  var k=0;KO_ROUNDS.forEach(function(r){k+=Object.keys(koPicks[r]).length;});
+  return g+k; // champion auto-set from Final pick, not counted separately
+}
+function updateScore(){
+  var made=countPicks();
+  document.getElementById('prog-fill').style.width=Math.round(made/103*100)+'%';
+  document.getElementById('prog-label').textContent=made+' / 103 picks';
+  document.getElementById('tile-grp').textContent=grpPoints;
+  document.getElementById('tile-ko').textContent=grpScored?'in progress':'—';
+  document.getElementById('tile-total').textContent=grpPoints;
+  updateTabCompletion();
+}
+
+function updateTabCompletion(){
+  // Group stage: 72 picks
+  var gDone=Object.values(gPicks).filter(Boolean).length;
+  setTabComplete('group', gDone>=72);
+
+  // KO rounds
+  var counts={r32:16,r16:8,qf:4,sf:2,final:2}; // final=1 match + 1 champ pick
+  var r32Done=Object.keys(koPicks.r32).length;
+  var r16Done=Object.keys(koPicks.r16).length;
+  var qfDone=Object.keys(koPicks.qf).length;
+  var sfDone=Object.keys(koPicks.sf).length;
+  var finalDone=Object.keys(koPicks.final).length+(champPick?1:0);
+
+  setTabComplete('r32', r32Done>=16);
+  setTabComplete('r16', r16Done>=8);
+  setTabComplete('qf', qfDone>=4);
+  setTabComplete('sf', sfDone>=2);
+  setTabComplete('final', finalDone>=2);
+}
+
+function setTabComplete(round, complete){
+  var el=document.getElementById('tab-'+round);
+  if(!el||el.classList.contains('locked')) return;
+  if(complete){
+    el.classList.add('complete');
+  } else {
+    el.classList.remove('complete');
+  }
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────
+function submitPicks(){
+  if(!sheetsUrl){alert('No Google Sheets URL saved. Ask your admin.');return;}
+  if(countPicks()<103){alert('Please complete all 104 picks first.');return;}
+  var payload={name:playerName,timestamp:new Date().toISOString(),groupPicks:JSON.stringify(gPicks),koPicks:JSON.stringify(koPicks),champPick:champPick,groupPoints:grpPoints};
+  var btn=document.getElementById('submit-btn');
+  btn.disabled=true;document.getElementById('submit-note').textContent='Submitting…';
+  fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)})
+    .then(function(){document.getElementById('submit-ok').style.display='block';document.getElementById('submit-note').textContent='Submitted!';})
+    .catch(function(){btn.disabled=false;document.getElementById('submit-note').textContent='Error — check Sheets URL.';});
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────
+function saveSheetUrl(){sheetsUrl=document.getElementById('sheets-url').value.trim();localStorage.setItem('wc2026_sheets',sheetsUrl);loadLeaderboard();}
+function loadLeaderboard(){
+  if(!sheetsUrl)return;
+  fetch(sheetsUrl+'?action=leaderboard')
+    .then(function(r){return r.json();})
+    .then(function(data){renderLeaderboard(data);})
+    .catch(function(){document.getElementById('lb-empty').textContent='Could not load leaderboard.';});
+}
+function renderLeaderboard(entries){
+  if(!entries||!entries.length){document.getElementById('lb-empty').style.display='block';document.getElementById('lb-rows').innerHTML='';return;}
+  entries.sort(function(a,b){return b.points-a.points;});
+  document.getElementById('lb-empty').style.display='none';
+  var wrap=document.getElementById('lb-rows');wrap.innerHTML='';
+  entries.forEach(function(e,i){
+    var row=document.createElement('div');
+    row.className='lb-row r'+(i+1)+(e.name===playerName?' lb-you':'');
+    var initials=e.name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+    row.innerHTML='<div class="lb-rank">'+(i+1)+'</div>'+
+      '<div class="lb-avatar">'+initials+'</div>'+
+      '<div class="lb-info"><div class="lb-name">'+e.name+'</div><div class="lb-champ">'+(e.champPick?'🏆 '+e.champPick:'No champion yet')+'</div></div>'+
+      '<div class="lb-pts">'+e.points+'</div>';
+    wrap.appendChild(row);
+  });
+}
+
+// ── RESET ─────────────────────────────────────────────────────────
+function resetAll(){
+  gPicks={};gResults={};advTeams=[];koPicks={r32:{},r16:{},qf:{},sf:{},final:{}};
+  champPick='';grpLocked=false;grpScored=false;grpPoints=0;
+  var b=document.getElementById('grp-badge');b.className='rt-badge rt-open';b.textContent='Open for picks';
+  document.getElementById('grp-lock-btn').style.display='';
+  document.getElementById('grp-rt-note').textContent='Pick the winner of all 72 group stage matches · 1 pt each';
+  document.getElementById('grp-scored-banner').style.display='none';
+  var reveal=document.getElementById('champ-reveal');
+  if(reveal) reveal.style.display='none';
+  KO_ROUNDS.forEach(function(r){var el=document.getElementById('tab-'+r);if(el)el.classList.add('locked');});
+  renderGroups();showTab('group');updateScore();
+}
+
+// ── LOAD REAL ADVANCING TEAMS FROM SHEET ─────────────────────────
+var realAdvancingTeams = [];
+
+// Knockout tabs unlock after group stage ends (June 27, 2026) AND real teams are available
+var KO_UNLOCK_DATE = new Date('2026-06-28T00:00:00Z'); // midnight UTC June 28 = end of June 27
+
+function knockoutUnlockable() {
+  return new Date() >= KO_UNLOCK_DATE;
+}
+
+function loadAdvancingTeams() {
+  if (!sheetsUrl) return;
+  fetch(sheetsUrl + '?action=advancingTeams')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.teams && data.teams.length >= 2 && knockoutUnlockable()) {
+        realAdvancingTeams = data.teams;
+        // Unlock all knockout tabs
+        ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
+        // Update save confirmation message
+        var okBanner = document.getElementById('grp-submit-ok');
+        if (okBanner && okBanner.style.display !== 'none') {
+          okBanner.textContent = '✓ Group stage picks saved! Knockout picks are now open — click the Round of 32 tab above!';
+        }
+        // Update the round toolbar note
+        var note = document.getElementById('grp-rt-note');
+        if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
+        // If currently on a KO tab, re-render it with real teams
+        ['r32','r16','qf','sf','final'].forEach(function(r) {
+          var sec = document.getElementById('sec-' + r);
+          if (sec && sec.classList.contains('active')) renderKO(r);
+        });
+      } else if (!knockoutUnlockable()) {
+        // Show how many days until knockout picks open
+        var daysLeft = Math.ceil((KO_UNLOCK_DATE - new Date()) / 86400000);
+        var note = document.getElementById('grp-rt-note');
+        if (note) note.textContent = 'Knockout picks open after the group stage ends on June 27 (' + daysLeft + ' days away).';
+      }
+    })
+    .catch(function() { /* silently fail */ });
+}
+
+// ── SAVE GROUP PICKS ─────────────────────────────────────────────
+function submitGroupPicks() {
+  if (!sheetsUrl) { alert('Could not connect to the server. Please try again.'); return; }
+  var picked = Object.values(gPicks).filter(Boolean).length;
+  if (picked === 0) { alert('Make at least one pick before saving!'); return; }
+  var btn = document.getElementById('grp-submit-btn');
+  btn.disabled = true;
+  document.getElementById('grp-submit-note').textContent = 'Saving...';
+  var payload = {
+    name: playerName,
+    timestamp: new Date().toISOString(),
+    groupPicks: JSON.stringify(gPicks),
+    koPicks: JSON.stringify(koPicks),
+    champPick: champPick,
+    groupPoints: 0
+  };
+  fetch(sheetsUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+    .then(function() {
+      document.getElementById('grp-submit-ok').style.display = 'block';
+      document.getElementById('grp-submit-note').textContent = picked + ' picks saved';
+      btn.disabled = false;
+    })
+    .catch(function() {
+      btn.disabled = false;
+      document.getElementById('grp-submit-note').textContent = 'Error saving — please try again.';
+    });
+}
+
+// ── CHAMPION REVEAL ──────────────────────────────────────────────
+function showChampionReveal(team) {
+  var reveal = document.getElementById('champ-reveal');
+  var nameEl = document.getElementById('champ-reveal-name');
+  if (!reveal || !nameEl) return;
+  if (team) {
+    nameEl.textContent = team;
+    reveal.style.display = 'block';
+    // Update submit note
+    champPick = team;
+  } else {
+    reveal.style.display = 'none';
+    champPick = '';
+  }
+  updateScore();
+}
+
+// ── FONT SIZE CONTROL ─────────────────────────────────────────────
+var currentFontSize = parseInt(localStorage.getItem('wc2026_fontsize')) || 18;
+applyFontSize(currentFontSize);
+
+function applyFontSize(size) {
+  size = Math.min(Math.max(size, 13), 24); // clamp between 13 and 24
+  currentFontSize = size;
+  document.body.style.fontSize = size + 'px';
+  var display = document.getElementById('font-size-display');
+  if (display) display.textContent = size + 'px';
+  localStorage.setItem('wc2026_fontsize', size);
+}
+function adjustFont(delta) {
+  applyFontSize(currentFontSize + delta);
+}
+
+</script>
+</body>
+</html>

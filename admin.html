@@ -478,6 +478,27 @@ function buildGroupMatches(){
       var vs=document.createElement('span');vs.className='vs-div';vs.textContent='vs';
       var bB=makeResultBtn(b,key,'group',alreadyScored);
       matchDiv.appendChild(bA);matchDiv.appendChild(vs);matchDiv.appendChild(bB);
+      // Draw button
+      if(!alreadyScored){
+        var drawBtn=document.createElement('button');
+        drawBtn.className='result-btn'+(results['group'][key]==='__draw__'?' winner':'');
+        drawBtn.textContent='Draw';
+        drawBtn.style.cssText='flex:0.6;font-size:11px;background:'+(results['group'][key]==='__draw__'?'var(--green)':'#555')+';color:#fff;border-color:'+(results['group'][key]==='__draw__'?'var(--green)':'#555')+';';
+        drawBtn.onclick=function(){
+          results['group'][key]=(results['group'][key]==='__draw__'?'':'__draw__');
+          // deselect team buttons
+          var siblings=matchDiv.querySelectorAll('.result-btn');
+          siblings.forEach(function(s){
+            s.classList.remove('winner');
+            s.style.background='';s.style.color='';s.style.borderColor='';
+          });
+          if(results['group'][key]==='__draw__'){
+            drawBtn.classList.add('winner');
+            drawBtn.style.background='var(--green)';drawBtn.style.color='#fff';drawBtn.style.borderColor='var(--green)';
+          }
+        };
+        matchDiv.appendChild(drawBtn);
+      }
       card.appendChild(matchDiv);grid.appendChild(card);
     });
   });
@@ -492,8 +513,13 @@ function makeResultBtn(team,key,round,disabled){
     btn.onclick=function(){
       results[round][key]=(results[round][key]===team?'':team);
       var siblings=btn.parentElement.querySelectorAll('.result-btn');
-      siblings.forEach(function(s){s.classList.remove('winner');});
-      if(results[round][key])btn.classList.add('winner');
+      siblings.forEach(function(s){
+        s.classList.remove('winner');
+        // reset draw button style if present
+        if(s.textContent==='Draw'){s.style.background='#555';s.style.color='#fff';s.style.borderColor='#555';}
+        else{s.style.background='';s.style.color='';s.style.borderColor='';}
+      });
+      if(results[round][key]){btn.classList.add('winner');}
     };
   }
   return btn;
@@ -560,7 +586,15 @@ function scoreRound(round){
       var picks={};
       try{picks=JSON.parse(p.groupPicks||'{}');}catch(e){}
       newMatches.forEach(function(k){
-        if(roundResults[k]&&picks[k]&&picks[k]===roundResults[k]){newPts++;totalCorrect++;}
+        var result=roundResults[k];
+        var playerPick=picks[k];
+        if(!result||!playerPick) return;
+        if(result==='__draw__'){
+          // Draw: award point to anyone who picked either team
+          newPts++;totalCorrect++;
+        } else if(playerPick===result){
+          newPts++;totalCorrect++;
+        }
       });
       // ADD to existing group points (running total)
       scoredPoints[p.name].group += newPts;

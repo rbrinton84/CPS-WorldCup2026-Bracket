@@ -671,6 +671,11 @@ function loadPreviousPicks(callback) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.found) {
+        // Restore group points so the top bar shows correctly
+        if (data.groupPoints) {
+          grpPoints = parseInt(data.groupPoints) || 0;
+          grpScored = grpPoints > 0;
+        }
         // Restore group picks
         if (data.groupPicks) {
           try { gPicks = JSON.parse(data.groupPicks); } catch(e) { gPicks = {}; }
@@ -864,7 +869,7 @@ function updateScore(){
   document.getElementById('prog-fill').style.width=Math.round(made/103*100)+'%';
   document.getElementById('prog-label').textContent=made+' / 103 picks';
   document.getElementById('tile-grp').textContent=grpPoints;
-  document.getElementById('tile-ko').textContent=grpScored?'in progress':'—';
+  document.getElementById('tile-ko').textContent=(grpScored||grpPoints>0)?'in progress':'—';
   document.getElementById('tile-total').textContent=grpPoints;
   updateTabCompletion();
 }

@@ -382,9 +382,34 @@ function connectSheets(){
   document.getElementById('sheets-status').textContent='Connected';
   document.getElementById('sheets-status').className='sheets-status connected';
   loadParticipants();
-  buildGroupMatches();
-  buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
-  buildKOMatches('sf',2);buildKOMatches('final',1);
+  loadScoredMatches(function(){
+    buildGroupMatches();
+    buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
+    buildKOMatches('sf',2);buildKOMatches('final',1);
+  });
+}
+
+function loadScoredMatches(callback) {
+  if (!sheetsUrl) { if(callback)callback(); return; }
+  fetch(sheetsUrl + '?action=getScoredMatches')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.scoredMatches) {
+        try {
+          var loaded = JSON.parse(data.scoredMatches);
+          Object.keys(loaded).forEach(function(k) {
+            scoredGroupMatches[k] = loaded[k];
+          });
+          // Also restore group points into scoredPoints from participants
+          var scored = Object.keys(scoredGroupMatches).length;
+          if (scored > 0) {
+            showAlert('success', '✓ Loaded ' + scored + ' previously scored group matches. These are locked to prevent double-scoring.');
+          }
+        } catch(e) {}
+      }
+      if(callback) callback();
+    })
+    .catch(function() { if(callback) callback(); });
 }
 function disconnectSheets(){
   sheetsUrl='';localStorage.removeItem('wc2026_admin_url');
@@ -622,6 +647,10 @@ function scoreRound(round){
     summary.style.display='block';
     summary.textContent='✓ Scored '+newMatches.length+' new matches! '+totalCorrect+' correct picks · '+totalPts+' pts awarded. Running total: '+scored+'/72 matches scored.';
     showAlert('success','Group results saved! Click "Save All Scores to Sheet" to update the leaderboard.');
+    // Persist scored matches to sheet
+    if(sheetsUrl){
+      fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveScoredMatches',scoredMatches:JSON.stringify(scoredGroupMatches)})});
+    }
 
     // Save advancing teams if all 72 scored
     if(scored>=72){

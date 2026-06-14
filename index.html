@@ -681,7 +681,8 @@ function loadPreviousPicks(callback) {
         // Restore group points into the top bar
         if (data.groupPoints) {
           grpPoints = parseInt(data.groupPoints) || 0;
-          grpScored = grpPoints > 0;
+          // Don't set grpScored here — wait for loadActualResults to set it
+          // so we have actual results before rendering correct/wrong styling
         }
         // Restore group picks
         if (data.groupPicks) {
@@ -884,7 +885,7 @@ function updateScore(){
   document.getElementById('prog-fill').style.width=Math.round(made/103*100)+'%';
   document.getElementById('prog-label').textContent=made+' / 103 picks';
   document.getElementById('tile-grp').textContent=grpPoints;
-  document.getElementById('tile-ko').textContent=(grpScored||grpPoints>0)?'in progress':'—';
+  document.getElementById('tile-ko').textContent=grpPoints>0?'in progress':'—';
   document.getElementById('tile-total').textContent=grpPoints;
   updateTabCompletion();
 }

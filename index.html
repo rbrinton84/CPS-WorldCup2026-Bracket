@@ -936,9 +936,30 @@ function submitPicks(){
 function saveSheetUrl(){sheetsUrl=document.getElementById('sheets-url').value.trim();localStorage.setItem('wc2026_sheets',sheetsUrl);loadLeaderboard();}
 function loadLeaderboard(){
   if(!sheetsUrl)return;
-  fetch(sheetsUrl+'?action=leaderboard')
+  fetch(sheetsUrl+'?action=leaderboard&_t='+new Date().getTime())
     .then(function(r){return r.json();})
-    .then(function(data){renderLeaderboard(data);})
+    .then(function(data){
+      // New format returns {entries:[], scoredMatches:'{}'}
+      // Old format returns [] directly — handle both
+      if(data && data.entries) {
+        renderLeaderboard(data.entries);
+        // Extract scored matches from leaderboard response
+        if(data.scoredMatches) {
+          try {
+            var sm = JSON.parse(data.scoredMatches);
+            if(Object.keys(sm).length > 0) {
+              actualResults.group = sm;
+              grpScored = true;
+              renderGroups();
+              var legend = document.getElementById('results-legend');
+              if(legend) legend.style.display = 'flex';
+            }
+          } catch(e) {}
+        }
+      } else {
+        renderLeaderboard(data);
+      }
+    })
     .catch(function(){document.getElementById('lb-empty').textContent='Could not load leaderboard.';});
 }
 var lbLimit = 10;

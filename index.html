@@ -1223,7 +1223,7 @@ function setLang(lang) {
 // ── LOAD ACTUAL RESULTS FROM SHEET ───────────────────────────────
 function loadActualResults() {
   if (!sheetsUrl) return;
-  fetch(sheetsUrl + '?action=getScoredMatches')
+  fetch(sheetsUrl + '?action=getScoredMatches&_t=' + new Date().getTime())
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.scoredMatches) {

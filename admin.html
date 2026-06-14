@@ -400,16 +400,49 @@ function loadScoredMatches(callback) {
           Object.keys(loaded).forEach(function(k) {
             scoredGroupMatches[k] = loaded[k];
           });
-          // Also restore group points into scoredPoints from participants
           var scored = Object.keys(scoredGroupMatches).length;
           if (scored > 0) {
-            showAlert('success', '✓ Loaded ' + scored + ' previously scored group matches. These are locked to prevent double-scoring.');
+            showAlert('success', '✓ Loaded ' + scored + ' previously scored group matches. Recalculating scores from scratch...');
+            // Recalculate everyone from scratch based on locked matches
+            recalcGroupPointsFromScratch();
           }
         } catch(e) {}
       }
       if(callback) callback();
     })
     .catch(function() { if(callback) callback(); });
+}
+
+function recalcGroupPointsFromScratch() {
+  // Wait for participants to be loaded first
+  if (!participants.length) {
+    // participants not loaded yet, will be called again after loadParticipants
+    return;
+  }
+  participants.forEach(function(p) {
+    var picks = {};
+    try { picks = JSON.parse(p.groupPicks || '{}'); } catch(e) {}
+    var pts = 0;
+    Object.keys(scoredGroupMatches).forEach(function(k) {
+      var result = scoredGroupMatches[k];
+      var playerPick = picks[k];
+      if (!result || !playerPick) return;
+      if (result === '__draw__') {
+        pts++; // draw: anyone who picked either team gets the point
+      } else if (playerPick === result) {
+        pts++;
+      }
+    });
+    if (!scoredPoints[p.name]) {
+      scoredPoints[p.name] = {group:0,r32:0,r16:0,qf:0,sf:0,final:0,champ:0,total:0};
+    }
+    // REPLACE group points (not add)
+    scoredPoints[p.name].group = pts;
+    scoredPoints[p.name].total = pts + scoredPoints[p.name].r32 +
+      scoredPoints[p.name].r16 + scoredPoints[p.name].qf +
+      scoredPoints[p.name].sf + scoredPoints[p.name].final;
+  });
+  renderLeaderboard();
 }
 function disconnectSheets(){
   sheetsUrl='';localStorage.removeItem('wc2026_admin_url');
@@ -437,9 +470,13 @@ function loadParticipants(){
       });
       hideAlert('info');
       renderStats();
-      renderLeaderboard();
       updateRunningBanner();
-      showAlert('success','Loaded '+participants.length+' participants.');
+      // Recalc from scratch if we have scored matches loaded
+      if (Object.keys(scoredGroupMatches).length > 0) {
+        recalcGroupPointsFromScratch();
+      }
+      renderLeaderboard();
+      showAlert('success','Loaded '+participants.length+' participants. Scores recalculated from ' + Object.keys(scoredGroupMatches).length + ' scored matches.');
     })
     .catch(function(){
       hideAlert('info');
@@ -621,7 +658,8 @@ function scoreRound(round){
           newPts++;totalCorrect++;
         }
       });
-      // ADD to existing group points (running total)
+      // ADD new match points to running total
+      // (recalcGroupPointsFromScratch handles full recalc on load)
       scoredPoints[p.name].group += newPts;
       scoredPoints[p.name].total = scoredPoints[p.name].group+scoredPoints[p.name].r32+
         scoredPoints[p.name].r16+scoredPoints[p.name].qf+scoredPoints[p.name].sf+scoredPoints[p.name].final;

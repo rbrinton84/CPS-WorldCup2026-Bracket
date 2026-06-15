@@ -765,6 +765,7 @@ function renderGroups(){
   });
 }
 function makeGBtn(team,key){
+  var btn=document.createElement('button');
   var cls=gBtnCls(team,key);
   btn.className=cls;
   btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;

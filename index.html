@@ -1223,12 +1223,7 @@ function setLang(lang) {
 // ── LOAD ACTUAL RESULTS FROM SHEET ───────────────────────────────
 function loadActualResults() {
   if (!sheetsUrl) return;
-  // Use POST to bypass Google's aggressive GET caching
-  fetch(sheetsUrl, {
-    method: 'POST',
-    mode: 'cors',
-    body: JSON.stringify({action: 'getScoredMatchesPost'})
-  })
+  fetch(sheetsUrl + '?action=getScoredMatches&_t=' + new Date().getTime())
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.scoredMatches) {

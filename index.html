@@ -411,6 +411,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
         </div>
       </div>
       <div class="scored-banner" id="grp-scored-banner" style="display:none;"></div>
+      <div id="results-legend" style="display:none;flex-wrap:wrap;gap:10px;margin-bottom:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font-semi);">
+        <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:3px;background:#1a7a3c;display:inline-block;"></span> Correct pick ✓</span>
+        <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:3px;background:var(--wrong-bg);display:inline-block;"></span> Wrong pick ✗</span>
+        <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:3px;background:var(--green-bg);border:1px solid var(--accent);display:inline-block;"></span> Actual result</span>
+        <span style="color:var(--ink3);">· Unplayed matches show your pick normally</span>
+      </div>
       <div class="groups-grid" id="groups-grid"></div>
       <div style="margin-top:1.25rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <button class="rt-btn" id="grp-submit-btn" onclick="submitGroupPicks()" id="grp-save-btn">Save my group stage picks</button>
@@ -625,6 +631,7 @@ var KO_COUNT={r32:16,r16:8,qf:4,sf:2,final:1};
 var ALL_TABS=['group','r32','r16','qf','sf','final'];
 
 var playerName='',gPicks={},gResults={},advTeams=[],koPicks={r32:{},r16:{},qf:{},sf:{},final:{}};
+var actualResults={group:{}};
 var champPick='',grpLocked=false,grpScored=false,grpPoints=0;
 var sheetsUrl='https://script.google.com/macros/s/AKfycbzCpR0Btz-1saD_x9EmEAhH7jG3phr7KWBYVdyZVeZPO_QTv84cqN-nflCaYTPjV0CKXg/exec';
 
@@ -659,7 +666,7 @@ function enterBracket(){
   document.getElementById('player-avatar').textContent=playerName.charAt(0).toUpperCase();
   document.getElementById('header-player').style.display='flex';
   loadPreviousPicks(function(){
-    renderGroups();updateScore();loadLeaderboard();loadAdvancingTeams();
+    renderGroups();updateScore();loadLeaderboard();loadAdvancingTeams();loadActualResults();
   });
 }
 
@@ -728,10 +735,15 @@ function getGroupMatches(teams){
 }
 function mkey(g,a,b){return g+'|'+a+'|'+b;}
 function gBtnCls(team,key){
-  var pick=gPicks[key]||'',result=gResults[key]||'';
+  var pick=gPicks[key]||'';
+  var result=actualResults.group[key]||gResults[key]||'';
   if(grpScored&&result){
+    if(result==='__draw__'){
+      if(pick===team) return 'pick-btn correct';
+      return 'pick-btn';
+    }
     if(team===pick&&team===result)return 'pick-btn correct';
-    if(team===pick)return 'pick-btn wrong';
+    if(team===pick&&team!==result)return 'pick-btn wrong';
     if(team===result)return 'pick-btn result-shown';
   }else if(grpLocked){
     if(team===result)return 'pick-btn result-shown';
@@ -757,12 +769,19 @@ function renderGroups(){
   });
 }
 function makeGBtn(team,key){
-  var btn=document.createElement('button');btn.className=gBtnCls(team,key);btn.textContent=team;btn.title=team;
-  if(!grpLocked){
+  var btn=document.createElement('button');
+  var cls=gBtnCls(team,key);
+  btn.className=cls;
+  btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
+  btn.title=team;
+  var hasResult=!!(actualResults.group[key]||gResults[key]);
+  if(grpScored||hasResult){
+    btn.disabled=true;
+  }else if(!grpLocked){
     btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};
-  }else if(!grpScored){
+  }else{
     btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};
-  }else{btn.disabled=true;}
+  }
   return btn;
 }
 function lockGroupStage(){
@@ -1200,6 +1219,28 @@ function setLang(lang) {
   // Refresh button
   var refreshBtns = document.querySelectorAll('.sidebar-refresh');
   refreshBtns.forEach(function(b){ b.textContent = t.refreshBtn; });
+}
+
+
+// ── LOAD ACTUAL RESULTS FROM SHEET ───────────────────────────────
+function loadActualResults() {
+  if (!sheetsUrl) return;
+  fetch(sheetsUrl + '?action=getScoredMatches&_t=' + new Date().getTime())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.scoredMatches) {
+        try {
+          actualResults.group = JSON.parse(data.scoredMatches);
+          if (Object.keys(actualResults.group).length > 0) {
+            grpScored = true;
+            renderGroups();
+            var legend = document.getElementById('results-legend');
+            if (legend) legend.style.display = 'flex';
+          }
+        } catch(e) {}
+      }
+    })
+    .catch(function() { /* silently fail */ });
 }
 
 </script>

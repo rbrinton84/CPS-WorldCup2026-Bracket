@@ -290,6 +290,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   border:6px solid transparent;border-top-color:#000;
 }
 .btab-wrapper:hover .btab-tooltip{display:block;}
+
+/* ── BRACKET VIEWER MODAL ── */
+.viewer-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);display:none;overflow-y:auto;}
+.viewer-overlay.active{display:block;}
+.viewer-inner{max-width:1100px;margin:0 auto;padding:1.5rem;}
+.viewer-header{background:#000;border:1px solid var(--accent);border-radius:10px;padding:14px 20px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:1rem;z-index:10;box-shadow:0 0 20px rgba(0,0,0,0.8);}
+.viewer-title{font-family:var(--font-display);font-size:1.3em;font-weight:700;color:var(--accent);letter-spacing:.04em;}
+.viewer-meta{font-size:13px;color:var(--ink3);font-family:var(--font-semi);}
+.viewer-close{font-family:var(--font-display);font-size:16px;font-weight:700;padding:8px 18px;border-radius:6px;background:var(--accent);color:#000;border:none;cursor:pointer;letter-spacing:.05em;}
+.viewer-close:hover{background:var(--accent2);}
+.viewer-champ{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;font-family:var(--font-semi);font-size:15px;color:var(--gold);}
+.viewer-loading{text-align:center;padding:3rem;color:var(--ink3);font-family:var(--font-semi);font-size:15px;}
+.lb-name.clickable{cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted;}
+.lb-name.clickable:hover{color:var(--accent2);}
+
 </style>
 </head>
 <body>
@@ -760,12 +775,15 @@ function renderGroups(){
   });
 }
 function makeGBtn(team,key){
-  var btn=document.createElement('button');btn.className=gBtnCls(team,key);btn.textContent=team;btn.title=team;
-  if(!grpLocked){
-    btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};
-  }else if(!grpScored){
-    btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};
-  }else{btn.disabled=true;}
+  var btn=document.createElement('button');
+  var cls=gBtnCls(team,key);
+  btn.className=cls;
+  btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
+  btn.title=team;
+  var hasResult=!!(actualResults.group[key]||gResults[key]);
+  if(grpScored||hasResult){btn.disabled=true;}
+  else if(!grpLocked){btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};}
+  else{btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};}
   return btn;
 }
 function lockGroupStage(){
@@ -952,10 +970,18 @@ function renderLeaderboard(entries){
     var row=document.createElement('div');
     row.className='lb-row r'+(i+1)+(e.name===playerName?' lb-you':'');
     var initials=e.name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    row.innerHTML='<div class="lb-rank">'+(i+1)+'</div>'+
-      '<div class="lb-avatar">'+initials+'</div>'+
-      '<div class="lb-info"><div class="lb-name">'+e.name+'</div><div class="lb-champ">'+(e.champPick?'🏆 '+e.champPick:'No champion yet')+'</div></div>'+
-      '<div class="lb-pts">'+e.points+'</div>';
+    var rankEl=document.createElement('div');rankEl.className='lb-rank';rankEl.textContent=i+1;
+    var avatarEl=document.createElement('div');avatarEl.className='lb-avatar';avatarEl.textContent=initials;
+    var nameEl=document.createElement('div');
+    nameEl.className='lb-name'+(e.name===playerName?'':' clickable');
+    nameEl.textContent=e.name;
+    if(e.name!==playerName){(function(n){nameEl.onclick=function(){viewBracket(n);};})(e.name);}
+    var champEl=document.createElement('div');champEl.className='lb-champ';
+    champEl.textContent=e.champPick?'🏆 '+e.champPick:'No champion yet';
+    var infoEl=document.createElement('div');infoEl.className='lb-info';
+    infoEl.appendChild(nameEl);infoEl.appendChild(champEl);
+    var ptsEl=document.createElement('div');ptsEl.className='lb-pts';ptsEl.textContent=e.points;
+    row.appendChild(rankEl);row.appendChild(avatarEl);row.appendChild(infoEl);row.appendChild(ptsEl);
     wrap.appendChild(row);
   });
 }
@@ -1226,6 +1252,71 @@ function loadActualResults() {
     })
     .catch(function() {});
 }
+
+
+// ── BRACKET VIEWER ───────────────────────────────────────────────
+function viewBracket(name) {
+  if (!name || name === playerName) return;
+  var overlay = document.getElementById('viewer-overlay');
+  var loading = document.getElementById('viewer-loading');
+  var groupsDiv = document.getElementById('viewer-groups');
+  document.getElementById('viewer-name').textContent = name + "'s Bracket";
+  document.getElementById('viewer-pts').textContent = '…';
+  document.getElementById('viewer-champ').textContent = '';
+  loading.style.display = 'block';
+  groupsDiv.style.display = 'none';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  fetch(sheetsUrl + '?action=getPicks&name=' + encodeURIComponent(name))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      loading.style.display = 'none';
+      if (!data || !data.found) { loading.textContent = 'No bracket found for ' + name; loading.style.display = 'block'; return; }
+      var theirPicks = {};
+      try { theirPicks = JSON.parse(data.groupPicks || '{}'); } catch(e) {}
+      document.getElementById('viewer-pts').textContent = parseInt(data.groupPoints) || 0;
+      document.getElementById('viewer-champ').textContent = data.champPick ? '🏆 Champion pick: ' + data.champPick : 'No champion pick yet';
+      groupsDiv.innerHTML = '';
+      groupsDiv.style.display = 'grid';
+      Object.keys(GROUPS).forEach(function(g) {
+        var card = document.createElement('div'); card.className = 'group-card';
+        var head = document.createElement('div'); head.className = 'group-heading';
+        var letter = document.createElement('span'); letter.className = 'group-heading-letter'; letter.textContent = g;
+        head.appendChild(letter); head.appendChild(document.createTextNode(' Group ' + g)); card.appendChild(head);
+        getGroupMatches(GROUPS[g]).forEach(function(pair) {
+          var a = pair[0], b = pair[1], key = mkey(g, a, b);
+          var pick = theirPicks[key] || '', result = actualResults.group[key] || '';
+          var row = document.createElement('div'); row.className = 'g-match';
+          [a, b].forEach(function(team) {
+            var btn = document.createElement('button'); btn.title = team; btn.disabled = true;
+            var cls = 'pick-btn';
+            if (result) {
+              if (result === '__draw__') { if (pick === team) cls = 'pick-btn correct'; }
+              else if (team === pick && team === result) cls = 'pick-btn correct';
+              else if (team === pick && team !== result) cls = 'pick-btn wrong';
+              else if (team === result) cls = 'pick-btn result-shown';
+              else if (team === pick) cls = 'pick-btn picked';
+            } else if (team === pick) cls = 'pick-btn picked';
+            btn.className = cls;
+            btn.textContent = cls === 'pick-btn correct' ? '✓ ' + team : team;
+            row.appendChild(btn);
+            if (team === a) { var vs = document.createElement('span'); vs.className = 'vs-sep'; vs.textContent = 'vs'; row.appendChild(vs); }
+          });
+          card.appendChild(row);
+        });
+        groupsDiv.appendChild(card);
+      });
+    })
+    .catch(function() { loading.textContent = 'Could not load bracket. Try again.'; loading.style.display = 'block'; });
+}
+function closeViewer() {
+  document.getElementById('viewer-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var ov = document.getElementById('viewer-overlay');
+  if (ov) ov.addEventListener('click', function(e) { if (e.target === this) closeViewer(); });
+});
 
 </script>
 </body>

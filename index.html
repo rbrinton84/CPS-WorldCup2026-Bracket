@@ -1319,5 +1319,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+
+<!-- BRACKET VIEWER MODAL -->
+<div class="viewer-overlay" id="viewer-overlay">
+  <div class="viewer-inner">
+    <div class="viewer-header">
+      <div>
+        <div class="viewer-title" id="viewer-name">—</div>
+        <div class="viewer-meta">Read-only view · <span id="viewer-pts">0</span> pts</div>
+      </div>
+      <button class="viewer-close" onclick="closeViewer()">✕ Close</button>
+    </div>
+    <div class="viewer-champ" id="viewer-champ"></div>
+    <div id="viewer-loading" class="viewer-loading">Loading bracket…</div>
+    <div id="viewer-groups" class="groups-grid" style="display:none;"></div>
+  </div>
+</div>
 </body>
 </html>

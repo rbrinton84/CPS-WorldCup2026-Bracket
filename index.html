@@ -771,12 +771,19 @@ function renderGroups(){
   });
 }
 function makeGBtn(team,key){
-  var btn=document.createElement('button');btn.className=gBtnCls(team,key);btn.textContent=team;btn.title=team;
-  if(!grpLocked){
+  var btn=document.createElement('button');
+  var cls=gBtnCls(team,key);
+  btn.className=cls;
+  btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
+  btn.title=team;
+  var hasResult=!!(actualResults.group[key]||gResults[key]);
+  if(grpScored||hasResult){
+    btn.disabled=true;
+  }else if(!grpLocked){
     btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};
-  }else if(!grpScored){
+  }else{
     btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};
-  }else{btn.disabled=true;}
+  }
   return btn;
 }
 function lockGroupStage(){

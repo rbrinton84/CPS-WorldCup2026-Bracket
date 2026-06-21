@@ -961,10 +961,19 @@ function renderLeaderboard(entries){
     var row=document.createElement('div');
     row.className='lb-row r'+(i+1)+(e.name===playerName?' lb-you':'');
     var initials=e.name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    row.innerHTML='<div class="lb-rank">'+(i+1)+'</div>'+
-      '<div class="lb-avatar">'+initials+'</div>'+
-      '<div class="lb-info"><div class="lb-name'+(e.name===playerName?'':' clickable')+'" '+(e.name===playerName?'':'onclick="viewBracket(\'' + e.name.replace(/'/g,"\\'") + '\')"')+'>'+e.name+'</div><div class="lb-champ">'+(e.champPick?'🏆 '+e.champPick:'No champion yet')+'</div></div>'+
-      '<div class="lb-pts">'+e.points+'</div>';
+    // Build row with DOM to avoid escaping issues
+    var rankEl=document.createElement('div');rankEl.className='lb-rank';rankEl.textContent=i+1;
+    var avatarEl=document.createElement('div');avatarEl.className='lb-avatar';avatarEl.textContent=initials;
+    var nameEl=document.createElement('div');
+    nameEl.className='lb-name'+(e.name===playerName?'':' clickable');
+    nameEl.textContent=e.name;
+    if(e.name!==playerName){(function(n){nameEl.onclick=function(){viewBracket(n);};})(e.name);}
+    var champEl=document.createElement('div');champEl.className='lb-champ';
+    champEl.textContent=e.champPick?'🏆 '+e.champPick:'No champion yet';
+    var infoEl=document.createElement('div');infoEl.className='lb-info';
+    infoEl.appendChild(nameEl);infoEl.appendChild(champEl);
+    var ptsEl=document.createElement('div');ptsEl.className='lb-pts';ptsEl.textContent=e.points;
+    row.appendChild(rankEl);row.appendChild(avatarEl);row.appendChild(infoEl);row.appendChild(ptsEl);
     wrap.appendChild(row);
   });
 }
@@ -1217,7 +1226,7 @@ function setLang(lang) {
 
 // ── BRACKET VIEWER ───────────────────────────────────────────────
 function viewBracket(name) {
-  if (name === playerName) return;
+  if (!name || name === playerName) return;
   var overlay = document.getElementById('viewer-overlay');
   var loading = document.getElementById('viewer-loading');
   var groupsDiv = document.getElementById('viewer-groups');

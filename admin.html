@@ -381,13 +381,11 @@ function connectSheets(){
   document.getElementById('gate').style.display='none';
   document.getElementById('sheets-status').textContent='Connected';
   document.getElementById('sheets-status').className='sheets-status connected';
-  // Load participants first, then scored matches so recalc has both available
-  loadParticipants(function(){
-    loadScoredMatches(function(){
-      buildGroupMatches();
-      buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
-      buildKOMatches('sf',2);buildKOMatches('final',1);
-    });
+  loadParticipants();
+  loadScoredMatches(function(){
+    buildGroupMatches();
+    buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
+    buildKOMatches('sf',2);buildKOMatches('final',1);
   });
 }
 
@@ -420,7 +418,7 @@ function disconnectSheets(){
   document.getElementById('gate').style.display='flex';
 }
 
-function loadParticipants(callback){
+function loadParticipants(){
   if(!sheetsUrl)return;
   showAlert('info','Loading participants…');
   fetch(sheetsUrl+'?action=admin')
@@ -439,15 +437,13 @@ function loadParticipants(callback){
       });
       hideAlert('info');
       renderStats();
-      updateRunningBanner();
       renderLeaderboard();
+      updateRunningBanner();
       showAlert('success','Loaded '+participants.length+' participants.');
-      if(callback) callback();
     })
     .catch(function(){
       hideAlert('info');
       showAlert('error','Could not load data. Check your Sheets URL.');
-      if(callback) callback();
     });
 }
 
@@ -554,6 +550,25 @@ function makeResultBtn(team,key,round,disabled){
   return btn;
 }
 
+var R32_SCHEDULE=[
+  {matchup:'2nd A vs 2nd B',date:'Sun Jun 28',time:'1:00 PM MT',venue:'Los Angeles'},
+  {matchup:'1st C vs 2nd F',date:'Mon Jun 29',time:'11:00 AM MT',venue:'Houston'},
+  {matchup:'1st E vs Best 3rd',date:'Mon Jun 29',time:'2:30 PM MT',venue:'Boston'},
+  {matchup:'1st F vs 2nd C',date:'Mon Jun 29',time:'7:00 PM MT',venue:'Monterrey'},
+  {matchup:'2nd E vs 2nd I',date:'Tue Jun 30',time:'11:00 AM MT',venue:'Dallas'},
+  {matchup:'1st I vs Best 3rd',date:'Tue Jun 30',time:'3:00 PM MT',venue:'New York'},
+  {matchup:'1st A vs Best 3rd',date:'Tue Jun 30',time:'7:00 PM MT',venue:'Mexico City'},
+  {matchup:'1st L vs Best 3rd',date:'Wed Jul 1',time:'10:00 AM MT',venue:'Atlanta'},
+  {matchup:'1st G vs Best 3rd',date:'Wed Jul 1',time:'2:00 PM MT',venue:'Seattle'},
+  {matchup:'1st D vs Best 3rd',date:'Wed Jul 1',time:'6:00 PM MT',venue:'San Francisco'},
+  {matchup:'1st H vs 2nd J',date:'Thu Jul 2',time:'1:00 PM MT',venue:'Los Angeles'},
+  {matchup:'2nd K vs 2nd L',date:'Thu Jul 2',time:'5:00 PM MT',venue:'Toronto'},
+  {matchup:'1st B vs Best 3rd',date:'Thu Jul 2',time:'9:00 PM MT',venue:'Vancouver'},
+  {matchup:'2nd D vs 2nd G',date:'Fri Jul 3',time:'12:00 PM MT',venue:'Dallas'},
+  {matchup:'1st J vs 2nd H',date:'Fri Jul 3',time:'4:00 PM MT',venue:'Miami'},
+  {matchup:'1st K vs Best 3rd',date:'Fri Jul 3',time:'7:30 PM MT',venue:'Kansas City'},
+];
+
 function buildKOMatches(round,count){
   var grid=document.getElementById(round+'-matches');
   grid.innerHTML='';
@@ -564,6 +579,14 @@ function buildKOMatches(round,count){
       var lbl=document.createElement('div');lbl.className='match-label';
       lbl.innerHTML='<span>'+KO_LABELS[round]+' · Match '+(idx+1)+'</span><span class="tag tag-gold">'+KO_PTS[round]+' pts</span>';
       card.appendChild(lbl);
+      // Add schedule info for Round of 32
+      if(round==='r32' && R32_SCHEDULE[idx]){
+        var sched=R32_SCHEDULE[idx];
+        var schedDiv=document.createElement('div');
+        schedDiv.style.cssText='font-size:10px;color:var(--ink3);font-family:var(--font-semi);margin-bottom:6px;padding:4px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border);';
+        schedDiv.innerHTML='<strong style="color:var(--ink2);">'+sched.matchup+'</strong><br>'+sched.date+' · '+sched.time+' · '+sched.venue;
+        card.appendChild(schedDiv);
+      }
       var teamAInput=document.createElement('input');
       teamAInput.type='text';teamAInput.placeholder='Team A name';
       teamAInput.style.cssText='width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-size:12px;font-family:var(--font-body);background:var(--bg);color:var(--ink);margin-bottom:6px;';

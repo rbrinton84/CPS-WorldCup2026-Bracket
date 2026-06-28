@@ -1054,44 +1054,33 @@ function knockoutUnlockable() {
 
 function loadAdvancingTeams() {
   if (!sheetsUrl) return;
-  fetch(sheetsUrl + '?action=advancingTeams')
+  fetch(sheetsUrl + '?action=getKOMatchups&_t=' + new Date().getTime())
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data && data.teams && data.teams.length >= 2 && knockoutUnlockable()) {
-        // Use matchups pairs if available (preserves correct FIFA match order)
-        // Otherwise fall back to flat teams list
-        if (data.matchups && data.matchups.length > 0) {
-          realAdvancingTeams = [];
-          data.matchups.forEach(function(pair) {
-            realAdvancingTeams.push(pair[0] || null);
-            realAdvancingTeams.push(pair[1] || null);
-          });
-        } else {
-          realAdvancingTeams = data.teams;
-        }
-        // Unlock all knockout tabs
+      if (data && data.r32 && data.r32.length >= 2 && knockoutUnlockable()) {
+        realAdvancingTeams = [];
+        data.r32.forEach(function(pair) {
+          realAdvancingTeams.push(pair[0] || null);
+          realAdvancingTeams.push(pair[1] || null);
+        });
         ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
-        // Update save confirmation message
         var okBanner = document.getElementById('grp-submit-ok');
         if (okBanner && okBanner.style.display !== 'none') {
           okBanner.textContent = '✓ Group stage picks saved! Knockout picks are now open — click the Round of 32 tab above!';
         }
-        // Update the round toolbar note
         var note = document.getElementById('grp-rt-note');
         if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
-        // If currently on a KO tab, re-render it with real teams
         ['r32','r16','qf','sf','final'].forEach(function(r) {
           var sec = document.getElementById('sec-' + r);
           if (sec && sec.classList.contains('active')) renderKO(r);
         });
       } else if (!knockoutUnlockable()) {
-        // Show how many days until knockout picks open
         var daysLeft = Math.ceil((KO_UNLOCK_DATE - new Date()) / 86400000);
         var note = document.getElementById('grp-rt-note');
         if (note) note.textContent = 'Knockout picks open after the group stage ends on June 27 (' + daysLeft + ' days away).';
       }
     })
-    .catch(function() { /* silently fail */ });
+    .catch(function() {});
 }
 
 // ── SAVE GROUP PICKS ─────────────────────────────────────────────

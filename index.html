@@ -862,9 +862,20 @@ function renderKO(round){
   var grid=document.getElementById(round+'-grid');if(!grid)return;
   grid.innerHTML='';
   var teams=getKOTeams(round),count=KO_COUNT[round];
+  // Build key list based on BRACKET_FEED so picks align with correct matches
+  var feedKeys=[];
+  if(round==='r32'){
+    for(var j=0;j<16;j++) feedKeys.push('r32_'+j);
+  } else {
+    var feed=BRACKET_FEED[round];
+    feed.forEach(function(pair){
+      // Key for this match is derived from the feed pair
+      feedKeys.push(round+'_'+feedKeys.length);
+    });
+  }
   for(var i=0;i<count;i++){
     (function(idx){
-      var a=teams[idx*2]||null,b=teams[idx*2+1]||null,key=round+'_'+idx;
+      var a=teams[idx*2]||null,b=teams[idx*2+1]||null,key=feedKeys[idx]||round+'_'+idx;
       var card=document.createElement('div');card.className='ko-card';
       var head=document.createElement('div');head.className='ko-card-head';
       var lbl=document.createElement('span');lbl.className='ko-match-lbl';lbl.textContent=KO_LABELS[round]+' · Match '+(idx+1);

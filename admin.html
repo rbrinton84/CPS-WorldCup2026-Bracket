@@ -384,6 +384,8 @@ function connectSheets(){
   loadParticipants(function(){
     loadScoredMatches(function(){
       buildGroupMatches();
+      recalcGroupPointsFromScratch();
+      buildGroupMatches();
       buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
       buildKOMatches('sf',2);buildKOMatches('final',1);
       setTimeout(loadKOMatchups, 500);
@@ -406,7 +408,6 @@ function loadScoredMatches(callback) {
           var scored = Object.keys(scoredGroupMatches).length;
           if (scored > 0) {
             showAlert('success', '✓ Loaded ' + scored + ' previously scored group matches. These are locked to prevent double-scoring.');
-            recalcGroupPointsFromScratch();
           }
         } catch(e) {}
       }

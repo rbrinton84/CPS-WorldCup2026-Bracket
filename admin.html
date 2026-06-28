@@ -194,7 +194,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-siz
           <div class="score-section">
             <div class="score-summary" id="r32-score-summary"></div>
             <div class="btn-row">
-              <button class="btn btn-green" onclick="saveAllKOMatchups()" style="font-size:13px;padding:7px 16px;">Save Matchups to Sheet</button>
               <button class="btn btn-primary" id="r32-score-btn" onclick="scoreRound('r32')">Score All Participants</button>
               <span style="font-size:12px;color:var(--ink3);">5 pts per correct pick · 16 matches</span>
             </div>
@@ -382,11 +381,13 @@ function connectSheets(){
   document.getElementById('gate').style.display='none';
   document.getElementById('sheets-status').textContent='Connected';
   document.getElementById('sheets-status').className='sheets-status connected';
-  loadParticipants();
-  loadScoredMatches(function(){
-    buildGroupMatches();
-    buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
-    buildKOMatches('sf',2);buildKOMatches('final',1);
+  loadParticipants(function(){
+    loadScoredMatches(function(){
+      buildGroupMatches();
+      buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
+      buildKOMatches('sf',2);buildKOMatches('final',1);
+      setTimeout(loadKOMatchups, 500);
+    });
   });
 }
 
@@ -405,6 +406,7 @@ function loadScoredMatches(callback) {
           var scored = Object.keys(scoredGroupMatches).length;
           if (scored > 0) {
             showAlert('success', '✓ Loaded ' + scored + ' previously scored group matches. These are locked to prevent double-scoring.');
+            recalcGroupPointsFromScratch();
           }
         } catch(e) {}
       }
@@ -419,14 +421,34 @@ function disconnectSheets(){
   document.getElementById('gate').style.display='flex';
 }
 
-function loadParticipants(){
+function recalcGroupPointsFromScratch(){
+  if(!participants.length || !Object.keys(scoredGroupMatches).length) return;
+  participants.forEach(function(p){
+    var picks={};
+    try{picks=JSON.parse(p.groupPicks||'{}');}catch(e){}
+    var pts=0;
+    Object.keys(scoredGroupMatches).forEach(function(k){
+      var result=scoredGroupMatches[k];
+      var playerPick=picks[k];
+      if(!result||!playerPick) return;
+      if(result==='__draw__'){pts++;}
+      else if(playerPick===result){pts++;}
+    });
+    if(!scoredPoints[p.name]) scoredPoints[p.name]={group:0,r32:0,r16:0,qf:0,sf:0,final:0,champ:0,total:0};
+    scoredPoints[p.name].group=pts;
+    scoredPoints[p.name].total=pts+scoredPoints[p.name].r32+scoredPoints[p.name].r16+
+      scoredPoints[p.name].qf+scoredPoints[p.name].sf+scoredPoints[p.name].final;
+  });
+  renderLeaderboard();
+}
+
+function loadParticipants(callback){
   if(!sheetsUrl)return;
   showAlert('info','Loading participants…');
   fetch(sheetsUrl+'?action=admin')
     .then(function(r){return r.json();})
     .then(function(data){
       participants=data||[];
-      // Restore existing group points into scoredPoints so running total is correct
       participants.forEach(function(p){
         if(!scoredPoints[p.name]){
           scoredPoints[p.name]={
@@ -438,13 +460,15 @@ function loadParticipants(){
       });
       hideAlert('info');
       renderStats();
-      renderLeaderboard();
       updateRunningBanner();
+      renderLeaderboard();
       showAlert('success','Loaded '+participants.length+' participants.');
+      if(callback) callback();
     })
     .catch(function(){
       hideAlert('info');
       showAlert('error','Could not load data. Check your Sheets URL.');
+      if(callback) callback();
     });
 }
 
@@ -561,13 +585,6 @@ function buildKOMatches(round,count){
       var lbl=document.createElement('div');lbl.className='match-label';
       lbl.innerHTML='<span>'+KO_LABELS[round]+' · Match '+(idx+1)+'</span><span class="tag tag-gold">'+KO_PTS[round]+' pts</span>';
       card.appendChild(lbl);
-      if(round==='r32'&&R32_SCHEDULE[idx]){
-        var sched=R32_SCHEDULE[idx];
-        var schedDiv=document.createElement('div');
-        schedDiv.style.cssText='font-size:10px;color:var(--ink3);font-family:var(--font-semi);margin-bottom:6px;padding:4px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border);';
-        schedDiv.innerHTML='<strong style="color:var(--ink2);">'+sched.matchup+'</strong><br>'+sched.date+' · '+sched.time+' · '+sched.venue;
-        card.appendChild(schedDiv);
-      }
       var teamAInput=document.createElement('input');
       teamAInput.type='text';teamAInput.placeholder='Team A name';
       teamAInput.style.cssText='width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-size:12px;font-family:var(--font-body);background:var(--bg);color:var(--ink);margin-bottom:6px;';
@@ -708,8 +725,6 @@ function scoreRound(round){
   summary.style.display='block';
   summary.textContent='✓ Scored! '+totalCorrect+' correct picks · '+totalPts+' total pts awarded this round.';
   showAlert('success','Round scored! Click "Save All Scores to Sheet" to update the leaderboard.');
-  // Save matchups so they auto-populate next session
-  saveKOMatchups(round);
 }
 
 function updateRoundStatus(round){
@@ -757,75 +772,6 @@ function manualPtsEdit(input){
   var val=parseInt(input.value)||0;
   if(!scoredPoints[name])scoredPoints[name]={group:0,r32:0,r16:0,qf:0,sf:0,final:0,champ:0,total:0};
   scoredPoints[name].total=val;
-}
-
-function loadKOMatchups(){
-  if(!sheetsUrl) return;
-  fetch(sheetsUrl+'?action=getKOMatchups')
-    .then(function(r){return r.json();})
-    .then(function(data){
-      if(!data) return;
-      var rounds=['r32','r16','qf','sf','final'];
-      var loaded=0;
-      rounds.forEach(function(round){
-        var matchups=data[round];
-        if(!matchups||!matchups.length) return;
-        var grid=document.getElementById(round+'-matches');
-        if(!grid) return;
-        var cards=grid.querySelectorAll('.match-card');
-        matchups.forEach(function(pair,idx){
-          if(!cards[idx]) return;
-          var inputs=cards[idx].querySelectorAll('input[type=text]');
-          if(inputs[0] && pair[0]) { inputs[0].value=pair[0]; inputs[0].dispatchEvent(new Event('input')); }
-          if(inputs[1] && pair[1]) { inputs[1].value=pair[1]; inputs[1].dispatchEvent(new Event('input')); }
-          loaded++;
-        });
-      });
-      if(loaded>0) showAlert('success','✓ Loaded '+loaded+' KO matchups from sheet.');
-    })
-    .catch(function(){});
-}
-
-var R32_SCHEDULE=[
-  {matchup:'2nd A vs 2nd B',date:'Sun Jun 28',time:'1:00 PM MT',venue:'Los Angeles'},
-  {matchup:'1st C vs 2nd F',date:'Mon Jun 29',time:'11:00 AM MT',venue:'Houston'},
-  {matchup:'1st E vs Best 3rd',date:'Mon Jun 29',time:'2:30 PM MT',venue:'Boston'},
-  {matchup:'1st F vs 2nd C',date:'Mon Jun 29',time:'7:00 PM MT',venue:'Monterrey'},
-  {matchup:'2nd E vs 2nd I',date:'Tue Jun 30',time:'11:00 AM MT',venue:'Dallas'},
-  {matchup:'1st I vs Best 3rd',date:'Tue Jun 30',time:'3:00 PM MT',venue:'New York'},
-  {matchup:'1st A vs Best 3rd',date:'Tue Jun 30',time:'7:00 PM MT',venue:'Mexico City'},
-  {matchup:'1st L vs Best 3rd',date:'Wed Jul 1',time:'10:00 AM MT',venue:'Atlanta'},
-  {matchup:'1st G vs Best 3rd',date:'Wed Jul 1',time:'2:00 PM MT',venue:'Seattle'},
-  {matchup:'1st D vs Best 3rd',date:'Wed Jul 1',time:'6:00 PM MT',venue:'San Francisco'},
-  {matchup:'1st H vs 2nd J',date:'Thu Jul 2',time:'1:00 PM MT',venue:'Los Angeles'},
-  {matchup:'2nd K vs 2nd L',date:'Thu Jul 2',time:'5:00 PM MT',venue:'Toronto'},
-  {matchup:'1st B vs Best 3rd',date:'Thu Jul 2',time:'9:00 PM MT',venue:'Vancouver'},
-  {matchup:'2nd D vs 2nd G',date:'Fri Jul 3',time:'12:00 PM MT',venue:'Dallas'},
-  {matchup:'1st J vs 2nd H',date:'Fri Jul 3',time:'4:00 PM MT',venue:'Miami'},
-  {matchup:'1st K vs Best 3rd',date:'Fri Jul 3',time:'7:30 PM MT',venue:'Kansas City'},
-];
-
-function saveAllKOMatchups(){
-  // Save all rounds at once
-  ['r32','r16','qf','sf','final'].forEach(function(round){
-    saveKOMatchups(round);
-  });
-  showAlert('success','✓ All KO matchups saved to sheet!');
-}
-
-function saveKOMatchups(round){
-  if(!sheetsUrl) return;
-  var grid=document.getElementById(round+'-matches');
-  if(!grid) return;
-  var matchups=[];
-  var cards=grid.querySelectorAll('.match-card');
-  cards.forEach(function(card){
-    var inputs=card.querySelectorAll('input[type=text]');
-    var a=inputs[0]?inputs[0].value.trim():'';
-    var b=inputs[1]?inputs[1].value.trim():'';
-    matchups.push([a,b]);
-  });
-  fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveKOMatchups',round:round,matchups:matchups})});
 }
 
 function saveAllScores(){

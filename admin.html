@@ -774,6 +774,90 @@ function manualPtsEdit(input){
   scoredPoints[name].total=val;
 }
 
+var R32_SCHEDULE=[
+  {matchup:'2nd A vs 2nd B',date:'Sun Jun 28',time:'1:00 PM MT',venue:'Los Angeles'},
+  {matchup:'1st C vs 2nd F',date:'Mon Jun 29',time:'11:00 AM MT',venue:'Houston'},
+  {matchup:'1st E vs Best 3rd',date:'Mon Jun 29',time:'2:30 PM MT',venue:'Boston'},
+  {matchup:'1st F vs 2nd C',date:'Mon Jun 29',time:'7:00 PM MT',venue:'Monterrey'},
+  {matchup:'2nd E vs 2nd I',date:'Tue Jun 30',time:'11:00 AM MT',venue:'Dallas'},
+  {matchup:'1st I vs Best 3rd',date:'Tue Jun 30',time:'3:00 PM MT',venue:'New York'},
+  {matchup:'1st A vs Best 3rd',date:'Tue Jun 30',time:'7:00 PM MT',venue:'Mexico City'},
+  {matchup:'1st L vs Best 3rd',date:'Wed Jul 1',time:'10:00 AM MT',venue:'Atlanta'},
+  {matchup:'1st G vs Best 3rd',date:'Wed Jul 1',time:'2:00 PM MT',venue:'Seattle'},
+  {matchup:'1st D vs Best 3rd',date:'Wed Jul 1',time:'6:00 PM MT',venue:'San Francisco'},
+  {matchup:'1st H vs 2nd J',date:'Thu Jul 2',time:'1:00 PM MT',venue:'Los Angeles'},
+  {matchup:'2nd K vs 2nd L',date:'Thu Jul 2',time:'5:00 PM MT',venue:'Toronto'},
+  {matchup:'1st B vs Best 3rd',date:'Thu Jul 2',time:'9:00 PM MT',venue:'Vancouver'},
+  {matchup:'2nd D vs 2nd G',date:'Fri Jul 3',time:'12:00 PM MT',venue:'Dallas'},
+  {matchup:'1st J vs 2nd H',date:'Fri Jul 3',time:'4:00 PM MT',venue:'Miami'},
+  {matchup:'1st K vs Best 3rd',date:'Fri Jul 3',time:'7:30 PM MT',venue:'Kansas City'},
+];
+
+function loadKOMatchups(){
+  if(!sheetsUrl) return;
+  fetch(sheetsUrl+'?action=getKOMatchups')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!data) return;
+      var loaded=0;
+      ['r32','r16','qf','sf','final'].forEach(function(round){
+        var matchups=data[round];
+        if(!matchups||!matchups.length) return;
+        var grid=document.getElementById(round+'-matches');
+        if(!grid) return;
+        var cards=grid.querySelectorAll('.match-card');
+        matchups.forEach(function(pair,idx){
+          if(!cards[idx]) return;
+          var inputs=cards[idx].querySelectorAll('input[type=text]');
+          if(inputs[0]&&pair[0]){inputs[0].value=pair[0];inputs[0].dispatchEvent(new Event('input'));}
+          if(inputs[1]&&pair[1]){inputs[1].value=pair[1];inputs[1].dispatchEvent(new Event('input'));}
+          loaded++;
+        });
+      });
+      if(loaded===0){
+        fetch(sheetsUrl+'?action=advancingTeams')
+          .then(function(r){return r.json();})
+          .then(function(adv){
+            if(adv&&adv.matchups&&adv.matchups.length){
+              var grid=document.getElementById('r32-matches');
+              if(!grid) return;
+              var cards=grid.querySelectorAll('.match-card');
+              adv.matchups.forEach(function(pair,idx){
+                if(!cards[idx]) return;
+                var inputs=cards[idx].querySelectorAll('input[type=text]');
+                if(inputs[0]&&pair[0]){inputs[0].value=pair[0];inputs[0].dispatchEvent(new Event('input'));}
+                if(inputs[1]&&pair[1]){inputs[1].value=pair[1];inputs[1].dispatchEvent(new Event('input'));}
+              });
+              showAlert('success','✓ R32 matchups loaded from sheet.');
+            }
+          }).catch(function(){});
+      } else {
+        showAlert('success','✓ Loaded '+loaded+' KO matchups from sheet.');
+      }
+    })
+    .catch(function(){});
+}
+
+function saveAllKOMatchups(){
+  ['r32','r16','qf','sf','final'].forEach(function(round){ saveKOMatchups(round); });
+  showAlert('success','✓ All KO matchups saved to sheet!');
+}
+
+function saveKOMatchups(round){
+  if(!sheetsUrl) return;
+  var grid=document.getElementById(round+'-matches');
+  if(!grid) return;
+  var matchups=[];
+  var cards=grid.querySelectorAll('.match-card');
+  cards.forEach(function(card){
+    var inputs=card.querySelectorAll('input[type=text]');
+    var a=inputs[0]?inputs[0].value.trim():'';
+    var b=inputs[1]?inputs[1].value.trim():'';
+    matchups.push([a,b]);
+  });
+  fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveKOMatchups',round:round,matchups:matchups})});
+}
+
 function saveAllScores(){
   if(!sheetsUrl){showAlert('error','Not connected.');return;}
   if(!participants.length){showAlert('error','No participants loaded.');return;}

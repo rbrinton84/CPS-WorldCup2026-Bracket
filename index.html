@@ -1058,7 +1058,17 @@ function loadAdvancingTeams() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.teams && data.teams.length >= 2 && knockoutUnlockable()) {
-        realAdvancingTeams = data.teams;
+        // Use matchups pairs if available (preserves correct FIFA match order)
+        // Otherwise fall back to flat teams list
+        if (data.matchups && data.matchups.length > 0) {
+          realAdvancingTeams = [];
+          data.matchups.forEach(function(pair) {
+            realAdvancingTeams.push(pair[0] || null);
+            realAdvancingTeams.push(pair[1] || null);
+          });
+        } else {
+          realAdvancingTeams = data.teams;
+        }
         // Unlock all knockout tabs
         ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
         // Update save confirmation message

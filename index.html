@@ -1049,7 +1049,7 @@ var realAdvancingTeams = [];
 var KO_UNLOCK_DATE = new Date('2026-06-27T00:00:00Z'); // midnight UTC June 27
 
 function knockoutUnlockable() {
-  return new Date() >= KO_UNLOCK_DATE;
+  return true; // Group stage is over, always unlocked
 }
 
 function loadAdvancingTeams() {

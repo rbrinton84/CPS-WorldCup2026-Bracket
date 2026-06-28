@@ -194,7 +194,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-siz
           <div class="score-section">
             <div class="score-summary" id="r32-score-summary"></div>
             <div class="btn-row">
-              <button class="btn btn-green" onclick="saveR32Matchups()" style="font-size:13px;padding:7px 16px;">Save Matchups to Sheet</button>
               <button class="btn btn-primary" id="r32-score-btn" onclick="scoreRound('r32')">Score All Participants</button>
               <span style="font-size:12px;color:var(--ink3);">5 pts per correct pick · 16 matches</span>
             </div>
@@ -551,25 +550,6 @@ function makeResultBtn(team,key,round,disabled){
   return btn;
 }
 
-var R32_SCHEDULE=[
-  {matchup:'2nd A vs 2nd B',date:'Sun Jun 28',time:'1:00 PM MT',venue:'Los Angeles'},
-  {matchup:'1st C vs 2nd F',date:'Mon Jun 29',time:'11:00 AM MT',venue:'Houston'},
-  {matchup:'1st E vs Best 3rd',date:'Mon Jun 29',time:'2:30 PM MT',venue:'Boston'},
-  {matchup:'1st F vs 2nd C',date:'Mon Jun 29',time:'7:00 PM MT',venue:'Monterrey'},
-  {matchup:'2nd E vs 2nd I',date:'Tue Jun 30',time:'11:00 AM MT',venue:'Dallas'},
-  {matchup:'1st I vs Best 3rd',date:'Tue Jun 30',time:'3:00 PM MT',venue:'New York'},
-  {matchup:'1st A vs Best 3rd',date:'Tue Jun 30',time:'7:00 PM MT',venue:'Mexico City'},
-  {matchup:'1st L vs Best 3rd',date:'Wed Jul 1',time:'10:00 AM MT',venue:'Atlanta'},
-  {matchup:'1st G vs Best 3rd',date:'Wed Jul 1',time:'2:00 PM MT',venue:'Seattle'},
-  {matchup:'1st D vs Best 3rd',date:'Wed Jul 1',time:'6:00 PM MT',venue:'San Francisco'},
-  {matchup:'1st H vs 2nd J',date:'Thu Jul 2',time:'1:00 PM MT',venue:'Los Angeles'},
-  {matchup:'2nd K vs 2nd L',date:'Thu Jul 2',time:'5:00 PM MT',venue:'Toronto'},
-  {matchup:'1st B vs Best 3rd',date:'Thu Jul 2',time:'9:00 PM MT',venue:'Vancouver'},
-  {matchup:'2nd D vs 2nd G',date:'Fri Jul 3',time:'12:00 PM MT',venue:'Dallas'},
-  {matchup:'1st J vs 2nd H',date:'Fri Jul 3',time:'4:00 PM MT',venue:'Miami'},
-  {matchup:'1st K vs Best 3rd',date:'Fri Jul 3',time:'7:30 PM MT',venue:'Kansas City'},
-];
-
 function buildKOMatches(round,count){
   var grid=document.getElementById(round+'-matches');
   grid.innerHTML='';
@@ -580,13 +560,6 @@ function buildKOMatches(round,count){
       var lbl=document.createElement('div');lbl.className='match-label';
       lbl.innerHTML='<span>'+KO_LABELS[round]+' · Match '+(idx+1)+'</span><span class="tag tag-gold">'+KO_PTS[round]+' pts</span>';
       card.appendChild(lbl);
-      if(round==='r32' && R32_SCHEDULE[idx]){
-        var sched=R32_SCHEDULE[idx];
-        var schedDiv=document.createElement('div');
-        schedDiv.style.cssText='font-size:10px;color:var(--ink3);font-family:var(--font-semi);margin-bottom:6px;padding:4px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border);';
-        schedDiv.innerHTML='<strong style="color:var(--ink2);">'+sched.matchup+'</strong><br>'+sched.date+' · '+sched.time+' · '+sched.venue;
-        card.appendChild(schedDiv);
-      }
       var teamAInput=document.createElement('input');
       teamAInput.type='text';teamAInput.placeholder='Team A name';
       teamAInput.style.cssText='width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-size:12px;font-family:var(--font-body);background:var(--bg);color:var(--ink);margin-bottom:6px;';
@@ -776,25 +749,27 @@ function manualPtsEdit(input){
   scoredPoints[name].total=val;
 }
 
-function saveR32Matchups(){
-  if(!sheetsUrl){showAlert('error','Not connected.');return;}
-  // Collect current team pairs from the R32 input fields
-  var matchups = [];
-  var grid = document.getElementById('r32-matches');
-  var cards = grid.querySelectorAll('.match-card');
-  cards.forEach(function(card) {
-    var inputs = card.querySelectorAll('input[type=text]');
-    var a = inputs[0] ? inputs[0].value.trim() : '';
-    var b = inputs[1] ? inputs[1].value.trim() : '';
-    matchups.push([a, b]);
-  });
-  // Also save as flat advancing teams list for backwards compatibility
-  var teams = [];
-  matchups.forEach(function(pair) { pair.forEach(function(t) { if(t) teams.push(t); }); });
-  showAlert('info', 'Saving R32 matchups…');
-  fetch(sheetsUrl, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'saveR32Matchups', matchups:matchups})});
-  fetch(sheetsUrl, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'saveAdvancingTeams', teams:teams})});
-  setTimeout(function(){ hideAlert('info'); showAlert('success', '✓ R32 matchups saved! Employees can now see the teams in their brackets.'); }, 1000);
+function loadKOMatchups(){
+  if(!sheetsUrl) return;
+  fetch(sheetsUrl+'?action=advancingTeams')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data && data.matchups && data.matchups.length>0){
+        var grid=document.getElementById('r32-matches');
+        var cards=grid.querySelectorAll('.match-card');
+        data.matchups.forEach(function(pair,idx){
+          if(!cards[idx]) return;
+          var inputs=cards[idx].querySelectorAll('input[type=text]');
+          if(inputs[0] && pair[0]) inputs[0].value=pair[0];
+          if(inputs[1] && pair[1]) inputs[1].value=pair[1];
+          // Trigger input event to enable buttons
+          if(inputs[0]) inputs[0].dispatchEvent(new Event('input'));
+          if(inputs[1]) inputs[1].dispatchEvent(new Event('input'));
+        });
+        showAlert('success','✓ Loaded '+data.matchups.length+' R32 matchups from sheet.');
+      }
+    })
+    .catch(function(){});
 }
 
 function saveAllScores(){

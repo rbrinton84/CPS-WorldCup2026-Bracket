@@ -443,7 +443,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jun 28 – Jun 30, 2026</span>
-              <span class="round-deadline-pill">⚑ Pick before Jun 28 · first kickoff</span>
+              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
             </div>
           </div>
         </div>
@@ -459,7 +459,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 4 – Jul 8, 2026</span>
-              <span class="round-deadline-pill">⚑ Pick before Jul 4 · first kickoff</span>
+              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
             </div>
           </div>
         </div>
@@ -475,7 +475,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 9 – Jul 11, 2026</span>
-              <span class="round-deadline-pill">⚑ Pick before Jul 9 · first kickoff</span>
+              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
             </div>
           </div>
         </div>
@@ -491,7 +491,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 14 – Jul 15, 2026</span>
-              <span class="round-deadline-pill">⚑ Pick before Jul 14 · first kickoff</span>
+              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
             </div>
           </div>
         </div>
@@ -507,7 +507,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 19, 2026 · MetLife Stadium, NJ</span>
-              <span class="round-deadline-pill">⚑ Pick before Jul 19 · kickoff</span>
+              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
             </div>
           </div>
         </div>
@@ -647,6 +647,7 @@ var sheetsUrl='https://script.google.com/macros/s/AKfycbwZwmrr-oBOBJZq4jmG9y13x2
 
 // ── COUNTDOWN ──────────────────────────────────────────────────────
 var DEADLINE = new Date('2026-06-11T19:00:00Z'); // 3 PM ET = 19:00 UTC
+var KO_DEADLINE = new Date('2026-06-28T19:00:00Z'); // 1 PM MT = 19:00 UTC Jun 28
 function updateCountdown(){
   var now=new Date(), diff=DEADLINE-now;
   if(diff<=0){
@@ -889,9 +890,11 @@ function renderKO(round){
     })(i);
   }
 }
+function koLocked(){return new Date()>=KO_DEADLINE;}
 function makeKBtn(team,key,round,idx){
   var btn=document.createElement('button');btn.className=kBtnCls(team,key,round);btn.textContent=team||'TBD';
   if(!team){btn.disabled=true;return btn;}
+  if(koLocked()){btn.disabled=true;return btn;}
   btn.onclick=function(){
     var prev=koPicks[round][key];
     if(prev===team){delete koPicks[round][key];cascadeRemove(round,idx,team);}

@@ -1053,32 +1053,46 @@ function knockoutUnlockable() {
 }
 
 function loadAdvancingTeams() {
+  // Always unlock KO tabs — group stage is complete
+  ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
+  var note = document.getElementById('grp-rt-note');
+  if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
   if (!sheetsUrl) return;
+  // Load R32 teams from sheet
   fetch(sheetsUrl + '?action=getKOMatchups&_t=' + new Date().getTime())
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data && data.r32 && data.r32.length >= 2 && knockoutUnlockable()) {
+      if (data && data.r32 && data.r32.length >= 2) {
         realAdvancingTeams = [];
         data.r32.forEach(function(pair) {
           realAdvancingTeams.push(pair[0] || null);
           realAdvancingTeams.push(pair[1] || null);
         });
-        ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
-        var okBanner = document.getElementById('grp-submit-ok');
-        if (okBanner && okBanner.style.display !== 'none') {
-          okBanner.textContent = '✓ Group stage picks saved! Knockout picks are now open — click the Round of 32 tab above!';
-        }
-        var note = document.getElementById('grp-rt-note');
-        if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
-        ['r32','r16','qf','sf','final'].forEach(function(r) {
-          var sec = document.getElementById('sec-' + r);
-          if (sec && sec.classList.contains('active')) renderKO(r);
-        });
-      } else if (!knockoutUnlockable()) {
-        var daysLeft = Math.ceil((KO_UNLOCK_DATE - new Date()) / 86400000);
-        var note = document.getElementById('grp-rt-note');
-        if (note) note.textContent = 'Knockout picks open after the group stage ends on June 27 (' + daysLeft + ' days away).';
+      } else {
+        // Fallback to advancingTeams action
+        fetch(sheetsUrl + '?action=advancingTeams&_t=' + new Date().getTime())
+          .then(function(r) { return r.json(); })
+          .then(function(adv) {
+            if (adv && adv.matchups && adv.matchups.length > 0) {
+              realAdvancingTeams = [];
+              adv.matchups.forEach(function(pair) {
+                realAdvancingTeams.push(pair[0] || null);
+                realAdvancingTeams.push(pair[1] || null);
+              });
+            } else if (adv && adv.teams) {
+              realAdvancingTeams = adv.teams;
+            }
+            ['r32','r16','qf','sf','final'].forEach(function(r) {
+              var sec = document.getElementById('sec-' + r);
+              if (sec && sec.classList.contains('active')) renderKO(r);
+            });
+          }).catch(function() {});
+        return;
       }
+      ['r32','r16','qf','sf','final'].forEach(function(r) {
+        var sec = document.getElementById('sec-' + r);
+        if (sec && sec.classList.contains('active')) renderKO(r);
+      });
     })
     .catch(function() {});
 }

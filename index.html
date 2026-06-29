@@ -162,10 +162,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .ko-btn{flex:1;padding:8px 6px;border:1px solid var(--border);border-radius:6px;font-size:17px;font-weight:500;cursor:pointer;text-align:center;background:transparent;color:var(--ink2);font-family:var(--font-semi);transition:all .12s;}
 .ko-btn:hover:not([disabled]):not(.tbd){border-color:var(--green);color:var(--green);}
 .ko-btn.picked{background:var(--picked-bg) !important;color:var(--picked-fg) !important;border-color:var(--picked-bg) !important;font-weight:600;}
-.ko-btn.correct{background:var(--picked-bg) !important;color:#fff !important;border-color:var(--picked-bg) !important;font-weight:600;box-shadow:0 0 0 2px rgba(26,122,60,0.25);}
+.ko-btn.correct{background:#1a7a3c !important;color:#fff !important;border-color:#1a7a3c !important;font-weight:700;box-shadow:0 0 8px rgba(26,122,60,0.4);}
 .ko-btn.wrong{background:var(--wrong-bg) !important;color:var(--wrong-fg) !important;border-color:var(--wrong-bg) !important;text-decoration:line-through;}
 .ko-btn.tbd{color:var(--ink3);cursor:default;font-style:italic;font-size:11px;border-style:dashed;background:var(--surface2);}
 .ko-btn[disabled]{cursor:default;}
+.ko-btn.result-shown{border-color:var(--accent) !important;color:var(--accent) !important;background:var(--green-bg) !important;}
 
 /* ── CHAMPION ── */
 .champ-section{margin-top:1.5rem;padding:1.5rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);border-radius:10px;}
@@ -291,7 +292,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 }
 .btab-wrapper:hover .btab-tooltip{display:block;}
 
-/* ── BRACKET VIEWER MODAL ── */
 .viewer-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);display:none;overflow-y:auto;}
 .viewer-overlay.active{display:block;}
 .viewer-inner{max-width:1100px;margin:0 auto;padding:1.5rem;}
@@ -443,7 +443,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jun 28 – Jun 30, 2026</span>
-              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
+              <span class="round-deadline-pill">⚑ Pick before Jun 28 · first kickoff</span>
             </div>
           </div>
         </div>
@@ -459,7 +459,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 4 – Jul 8, 2026</span>
-              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 4 · first kickoff</span>
             </div>
           </div>
         </div>
@@ -475,7 +475,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 9 – Jul 11, 2026</span>
-              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 9 · first kickoff</span>
             </div>
           </div>
         </div>
@@ -491,7 +491,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 14 – Jul 15, 2026</span>
-              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 14 · first kickoff</span>
             </div>
           </div>
         </div>
@@ -507,7 +507,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             <span class="rt-badge rt-open">Open for picks</span>
             <div class="round-date-range">
               <span class="round-date-pill"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Jul 19, 2026 · MetLife Stadium, NJ</span>
-              <span class="round-deadline-pill">⚑ Picks locked Jun 28 · 1:00 PM MT</span>
+              <span class="round-deadline-pill">⚑ Pick before Jul 19 · kickoff</span>
             </div>
           </div>
         </div>
@@ -640,8 +640,8 @@ var KO_COUNT={r32:16,r16:8,qf:4,sf:2,final:1};
 var ALL_TABS=['group','r32','r16','qf','sf','final'];
 
 var playerName='',gPicks={},gResults={},advTeams=[],koPicks={r32:{},r16:{},qf:{},sf:{},final:{}};
-var actualResults={group:{}};
-var champPick='',grpLocked=false,grpScored=false,grpPoints=0;
+var actualResults={group:{},r32:{},r16:{},qf:{},sf:{},final:{}};
+var champPick='',grpLocked=false,grpScored=false,grpPoints=0,koPoints=0;
 var sheetsUrl='https://script.google.com/macros/s/AKfycbwZwmrr-oBOBJZq4jmG9y13x2RZRn-0fKB6k77TzyuD71BgUgi8F5l56Ph9eF1MGdWF8A/exec';
 
 
@@ -689,6 +689,7 @@ function loadPreviousPicks(callback) {
     .then(function(data) {
       if (data && data.found) {
         if (data.groupPoints) { grpPoints = parseInt(data.groupPoints) || 0; }
+        if (data.totalPoints) { koPoints = Math.max(0,(parseInt(data.totalPoints)||0)-grpPoints); }
         // Restore group picks
         if (data.groupPicks) {
           try { gPicks = JSON.parse(data.groupPicks); } catch(e) { gPicks = {}; }
@@ -745,10 +746,7 @@ function gBtnCls(team,key){
   var pick=gPicks[key]||'';
   var result=actualResults.group[key]||gResults[key]||'';
   if(grpScored&&result){
-    if(result==='__draw__'){
-      if(pick===team) return 'pick-btn correct';
-      return 'pick-btn';
-    }
+    if(result==='__draw__'){if(pick===team)return 'pick-btn correct';return 'pick-btn';}
     if(team===pick&&team===result)return 'pick-btn correct';
     if(team===pick&&team!==result)return 'pick-btn wrong';
     if(team===result)return 'pick-btn result-shown';
@@ -813,70 +811,59 @@ function scoreGroupStage(){
 }
 
 // ── KNOCKOUT ──────────────────────────────────────────────────────
-// 2026 WC bracket feed mapping — which previous round matches feed each slot
 var BRACKET_FEED={
   r16:[
-    ['r32_1','r32_4'],   // R16-0: M89 W74(Germany) vs W77(France)
-    ['r32_0','r32_2'],   // R16-1: M90 W73(S.Africa/Canada) vs W75(Netherlands/Morocco)
-    ['r32_3','r32_5'],   // R16-2: M91 W76(Brazil/Japan) vs W78(CIV/Norway)
-    ['r32_6','r32_7'],   // R16-3: M92 W79(Mexico/Ecuador) vs W80(England/DRCongo)
-    ['r32_10','r32_11'], // R16-4: M93 W83(Portugal/Croatia) vs W84(Spain/Austria)
-    ['r32_8','r32_9'],   // R16-5: M94 W81(USA/Bosnia) vs W82(Belgium/Senegal)
-    ['r32_13','r32_15'], // R16-6: M95 W86(Argentina/CapeVerde) vs W88(Australia/Egypt)
-    ['r32_12','r32_14'], // R16-7: M96 W85(Switzerland/Algeria) vs W87(Colombia/Ghana)
+    ['r32_1','r32_4'],   // R16-0: M89 W74 vs W77
+    ['r32_0','r32_2'],   // R16-1: M90 W73 vs W75
+    ['r32_3','r32_5'],   // R16-2: M91 W76 vs W78
+    ['r32_6','r32_7'],   // R16-3: M92 W79 vs W80
+    ['r32_10','r32_11'], // R16-4: M93 W83 vs W84
+    ['r32_8','r32_9'],   // R16-5: M94 W81 vs W82
+    ['r32_13','r32_15'], // R16-6: M95 W86 vs W88
+    ['r32_12','r32_14'], // R16-7: M96 W85 vs W87
   ],
   qf:[
-    ['r16_0','r16_1'],   // QF-0: M97 W89 vs W90
-    ['r16_4','r16_5'],   // QF-1: M98 W93 vs W94
-    ['r16_2','r16_3'],   // QF-2: M99 W91 vs W92
-    ['r16_6','r16_7'],   // QF-3: M100 W95 vs W96
+    ['r16_0','r16_1'],   // QF-0: M97
+    ['r16_4','r16_5'],   // QF-1: M98
+    ['r16_2','r16_3'],   // QF-2: M99
+    ['r16_6','r16_7'],   // QF-3: M100
   ],
-  sf:[
-    ['qf_0','qf_1'],     // SF-0: M101 W97 vs W98
-    ['qf_2','qf_3'],     // SF-1: M102 W99 vs W100
-  ],
-  final:[
-    ['sf_0','sf_1'],     // Final: M104 W101 vs W102
-  ]
+  sf:[['qf_0','qf_1'],['qf_2','qf_3']],
+  final:[['sf_0','sf_1']]
 };
-
 function getKOTeams(round){
-  if(round==='r32') {
-    if(realAdvancingTeams.length > 0) return realAdvancingTeams.slice();
+  if(round==='r32'){
+    if(realAdvancingTeams.length>0)return realAdvancingTeams.slice();
     return advTeams.slice();
   }
   var feed=BRACKET_FEED[round];
-  if(!feed) return [];
+  if(!feed)return [];
   var out=[];
   feed.forEach(function(pair){
-    out.push(koPicks[pair[0].split('_')[0]][pair[0]] || null);
-    out.push(koPicks[pair[1].split('_')[0]][pair[1]] || null);
+    out.push(koPicks[pair[0].split('_')[0]][pair[0]]||null);
+    out.push(koPicks[pair[1].split('_')[0]][pair[1]]||null);
   });
   return out;
 }
 function kBtnCls(team,key,round){
   if(!team)return 'ko-btn tbd';
-  return 'ko-btn'+(koPicks[round][key]===team?' picked':'');
+  var pick=koPicks[round][key]||'';
+  var result=(actualResults[round]&&actualResults[round][key])||'';
+  if(result){
+    if(team===pick&&team===result)return 'ko-btn correct';
+    if(team===pick&&team!==result)return 'ko-btn wrong';
+    if(team===result)return 'ko-btn result-shown';
+  }
+  return 'ko-btn'+(pick===team?' picked':'');
 }
 function renderKO(round){
   if(round==='group')return;
   var grid=document.getElementById(round+'-grid');if(!grid)return;
   grid.innerHTML='';
   var teams=getKOTeams(round),count=KO_COUNT[round];
-  // Build key list based on BRACKET_FEED so picks align with correct matches
-  var feedKeys=[];
-  if(round==='r32'){
-    for(var j=0;j<16;j++) feedKeys.push('r32_'+j);
-  } else {
-    var feed=BRACKET_FEED[round];
-    feed.forEach(function(pair){
-      // Key for this match is derived from the feed pair
-      feedKeys.push(round+'_'+feedKeys.length);
-    });
-  }
   for(var i=0;i<count;i++){
     (function(idx){
-      var a=teams[idx*2]||null,b=teams[idx*2+1]||null,key=feedKeys[idx]||round+'_'+idx;
+      var a=teams[idx*2]||null,b=teams[idx*2+1]||null,key=round+'_'+idx;
       var card=document.createElement('div');card.className='ko-card';
       var head=document.createElement('div');head.className='ko-card-head';
       var lbl=document.createElement('span');lbl.className='ko-match-lbl';lbl.textContent=KO_LABELS[round]+' · Match '+(idx+1);
@@ -934,7 +921,7 @@ function updateScore(){
   document.getElementById('prog-fill').style.width=Math.round(made/103*100)+'%';
   document.getElementById('prog-label').textContent=made+' / 103 picks';
   document.getElementById('tile-grp').textContent=grpPoints;
-  document.getElementById('tile-ko').textContent=(grpScored||grpPoints>0)?'in progress':'—';
+  document.getElementById('tile-ko').textContent=grpScored?'in progress':'—';
   document.getElementById('tile-total').textContent=grpPoints;
   updateTabCompletion();
 }
@@ -1047,57 +1034,67 @@ function resetAll(){
 
 // ── LOAD REAL ADVANCING TEAMS FROM SHEET ─────────────────────────
 var realAdvancingTeams = [];
+var KO_UNLOCK_DATE = new Date('2026-06-27T00:00:00Z');
+function knockoutUnlockable(){return true;}
 
 // Knockout tabs unlock after group stage ends (June 27, 2026) AND real teams are available
-var KO_UNLOCK_DATE = new Date('2026-06-27T00:00:00Z'); // midnight UTC June 27
+var KO_UNLOCK_DATE = new Date('2026-06-28T00:00:00Z'); // midnight UTC June 28 = end of June 27
 
 function knockoutUnlockable() {
-  return true; // Group stage is over, always unlocked
+  return new Date() >= KO_UNLOCK_DATE;
 }
 
 function loadAdvancingTeams() {
-  // Always unlock KO tabs — group stage is complete
-  ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
-  var note = document.getElementById('grp-rt-note');
-  if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
+  ['r32','r16','qf','sf','final'].forEach(function(r){unlockTab(r);});
+  var note=document.getElementById('grp-rt-note');
+  if(note)note.textContent='Group stage complete! Click the Round of 32 tab to continue.';
+  if(!sheetsUrl)return;
+  fetch(sheetsUrl+'?action=getKOMatchups&_t='+new Date().getTime())
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data&&data.r32&&data.r32.length>=2){
+        realAdvancingTeams=[];
+        data.r32.forEach(function(pair){
+          realAdvancingTeams.push(pair[0]||null);
+          realAdvancingTeams.push(pair[1]||null);
+        });
+        ['r32','r16','qf','sf','final'].forEach(function(r){
+          var sec=document.getElementById('sec-'+r);
+          if(sec&&sec.classList.contains('active'))renderKO(r);
+        });
+      }
+    }).catch(function(){});
+}
+function loadAdvancingTeams_unused() {
   if (!sheetsUrl) return;
-  // Load R32 teams from sheet
-  fetch(sheetsUrl + '?action=getKOMatchups&_t=' + new Date().getTime())
+  fetch(sheetsUrl + '?action=advancingTeams')
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data && data.r32 && data.r32.length >= 2) {
-        realAdvancingTeams = [];
-        data.r32.forEach(function(pair) {
-          realAdvancingTeams.push(pair[0] || null);
-          realAdvancingTeams.push(pair[1] || null);
+      if (data && data.teams && data.teams.length >= 2 && knockoutUnlockable()) {
+        realAdvancingTeams = data.teams;
+        // Unlock all knockout tabs
+        ['r32','r16','qf','sf','final'].forEach(function(r) { unlockTab(r); });
+        // Update save confirmation message
+        var okBanner = document.getElementById('grp-submit-ok');
+        if (okBanner && okBanner.style.display !== 'none') {
+          okBanner.textContent = '✓ Group stage picks saved! Knockout picks are now open — click the Round of 32 tab above!';
+        }
+        // Update the round toolbar note
+        var note = document.getElementById('grp-rt-note');
+        if (note) note.textContent = 'Group stage complete! Click the Round of 32 tab to continue.';
+        // If currently on a KO tab, re-render it with real teams
+        ['r32','r16','qf','sf','final'].forEach(function(r) {
+          var sec = document.getElementById('sec-' + r);
+          if (sec && sec.classList.contains('active')) renderKO(r);
         });
-      } else {
-        // Fallback to advancingTeams action
-        fetch(sheetsUrl + '?action=advancingTeams&_t=' + new Date().getTime())
-          .then(function(r) { return r.json(); })
-          .then(function(adv) {
-            if (adv && adv.matchups && adv.matchups.length > 0) {
-              realAdvancingTeams = [];
-              adv.matchups.forEach(function(pair) {
-                realAdvancingTeams.push(pair[0] || null);
-                realAdvancingTeams.push(pair[1] || null);
-              });
-            } else if (adv && adv.teams) {
-              realAdvancingTeams = adv.teams;
-            }
-            ['r32','r16','qf','sf','final'].forEach(function(r) {
-              var sec = document.getElementById('sec-' + r);
-              if (sec && sec.classList.contains('active')) renderKO(r);
-            });
-          }).catch(function() {});
-        return;
+      } else if (!knockoutUnlockable()) {
+        // Show how many days until knockout picks open
+        var daysLeft = Math.ceil((KO_UNLOCK_DATE - new Date()) / 86400000);
+        var note = document.getElementById('grp-rt-note');
+        if (note) note.textContent = 'Knockout picks open after the group stage ends on June 27 (' + daysLeft + ' days away).';
       }
-      ['r32','r16','qf','sf','final'].forEach(function(r) {
-        var sec = document.getElementById('sec-' + r);
-        if (sec && sec.classList.contains('active')) renderKO(r);
-      });
     })
-    .catch(function() {});
+    .catch(function() { /* silently fail */ });
 }
 
 // ── SAVE GROUP PICKS ─────────────────────────────────────────────
@@ -1290,94 +1287,69 @@ function setLang(lang) {
 }
 
 
-// ── LOAD ACTUAL RESULTS FROM SHEET ───────────────────────────────
-function loadActualResults() {
-  if (!sheetsUrl) return;
-  fetch(sheetsUrl + '?action=getScoredMatches&_t=' + new Date().getTime())
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data && data.scoredMatches) {
-        try {
-          actualResults.group = JSON.parse(data.scoredMatches);
-          if (Object.keys(actualResults.group).length > 0) {
-            grpScored = true;
-            renderGroups();
-            var legend = document.getElementById('results-legend');
-            if (legend) legend.style.display = 'flex';
-          }
-        } catch(e) {}
-      }
-    })
-    .catch(function() {});
-}
-
-// ── BRACKET VIEWER ───────────────────────────────────────────────
-function viewBracket(name) {
-  if (!name || name === playerName) return;
-  var overlay = document.getElementById('viewer-overlay');
-  var loading = document.getElementById('viewer-loading');
-  var groupsDiv = document.getElementById('viewer-groups');
-  document.getElementById('viewer-name').textContent = name + "'s Bracket";
-  document.getElementById('viewer-pts').textContent = '…';
-  document.getElementById('viewer-champ').textContent = '';
-  loading.style.display = 'block';
-  groupsDiv.style.display = 'none';
-  overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  fetch(sheetsUrl + '?action=getPicks&name=' + encodeURIComponent(name))
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      loading.style.display = 'none';
-      if (!data || !data.found) { loading.textContent = 'No bracket found for ' + name; loading.style.display = 'block'; return; }
-      var theirPicks = {};
-      try { theirPicks = JSON.parse(data.groupPicks || '{}'); } catch(e) {}
-      document.getElementById('viewer-pts').textContent = parseInt(data.groupPoints) || 0;
-      document.getElementById('viewer-champ').textContent = data.champPick ? '🏆 Champion pick: ' + data.champPick : 'No champion pick yet';
-      groupsDiv.innerHTML = '';
-      groupsDiv.style.display = 'grid';
-      Object.keys(GROUPS).forEach(function(g) {
-        var card = document.createElement('div'); card.className = 'group-card';
-        var head = document.createElement('div'); head.className = 'group-heading';
-        var letter = document.createElement('span'); letter.className = 'group-heading-letter'; letter.textContent = g;
-        head.appendChild(letter); head.appendChild(document.createTextNode(' Group ' + g)); card.appendChild(head);
-        getGroupMatches(GROUPS[g]).forEach(function(pair) {
-          var a = pair[0], b = pair[1], key = mkey(g, a, b);
-          var pick = theirPicks[key] || '', result = actualResults.group[key] || '';
-          var row = document.createElement('div'); row.className = 'g-match';
-          [a, b].forEach(function(team) {
-            var btn = document.createElement('button'); btn.title = team; btn.disabled = true;
-            var cls = 'pick-btn';
-            if (result) {
-              if (result === '__draw__') { if (pick === team) cls = 'pick-btn correct'; }
-              else if (team === pick && team === result) cls = 'pick-btn correct';
-              else if (team === pick && team !== result) cls = 'pick-btn wrong';
-              else if (team === result) cls = 'pick-btn result-shown';
-              else if (team === pick) cls = 'pick-btn picked';
-            } else if (team === pick) cls = 'pick-btn picked';
-            btn.className = cls;
-            btn.textContent = cls === 'pick-btn correct' ? '✓ ' + team : team;
+function loadActualResultsUnused(){}
+function viewBracket(name){
+  if(!name||name===playerName)return;
+  var overlay=document.getElementById('viewer-overlay');
+  var loading=document.getElementById('viewer-loading');
+  var groupsDiv=document.getElementById('viewer-groups');
+  document.getElementById('viewer-name').textContent=name+"'s Bracket";
+  document.getElementById('viewer-pts').textContent='…';
+  document.getElementById('viewer-champ').textContent='';
+  loading.style.display='block';groupsDiv.style.display='none';
+  overlay.classList.add('active');document.body.style.overflow='hidden';
+  fetch(sheetsUrl+'?action=getPicks&name='+encodeURIComponent(name))
+    .then(function(r){return r.json();})
+    .then(function(data){
+      loading.style.display='none';
+      if(!data||!data.found){loading.textContent='No bracket found for '+name;loading.style.display='block';return;}
+      var theirPicks={};
+      try{theirPicks=JSON.parse(data.groupPicks||'{}');}catch(e){}
+      document.getElementById('viewer-pts').textContent=parseInt(data.groupPoints)||0;
+      document.getElementById('viewer-champ').textContent=data.champPick?'🏆 Champion pick: '+data.champPick:'No champion pick yet';
+      groupsDiv.innerHTML='';groupsDiv.style.display='grid';
+      Object.keys(GROUPS).forEach(function(g){
+        var card=document.createElement('div');card.className='group-card';
+        var head=document.createElement('div');head.className='group-heading';
+        var letter=document.createElement('span');letter.className='group-heading-letter';letter.textContent=g;
+        head.appendChild(letter);head.appendChild(document.createTextNode(' Group '+g));card.appendChild(head);
+        getGroupMatches(GROUPS[g]).forEach(function(pair){
+          var a=pair[0],b=pair[1],key=mkey(g,a,b);
+          var pick=theirPicks[key]||'',result=actualResults.group[key]||'';
+          var row=document.createElement('div');row.className='g-match';
+          [a,b].forEach(function(team){
+            var btn=document.createElement('button');btn.title=team;btn.disabled=true;
+            var cls='pick-btn';
+            if(result){
+              if(result==='__draw__'){if(pick===team)cls='pick-btn correct';}
+              else if(team===pick&&team===result)cls='pick-btn correct';
+              else if(team===pick&&team!==result)cls='pick-btn wrong';
+              else if(team===result)cls='pick-btn result-shown';
+              else if(team===pick)cls='pick-btn picked';
+            }else if(team===pick)cls='pick-btn picked';
+            btn.className=cls;
+            btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
             row.appendChild(btn);
-            if (team === a) { var vs = document.createElement('span'); vs.className = 'vs-sep'; vs.textContent = 'vs'; row.appendChild(vs); }
+            if(team===a){var vs=document.createElement('span');vs.className='vs-sep';vs.textContent='vs';row.appendChild(vs);}
           });
           card.appendChild(row);
         });
         groupsDiv.appendChild(card);
       });
     })
-    .catch(function() { loading.textContent = 'Could not load bracket. Try again.'; loading.style.display = 'block'; });
+    .catch(function(){loading.textContent='Could not load bracket. Try again.';loading.style.display='block';});
 }
-function closeViewer() {
+function closeViewer(){
   document.getElementById('viewer-overlay').classList.remove('active');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }
-document.addEventListener('DOMContentLoaded', function() {
-  var ov = document.getElementById('viewer-overlay');
-  if (ov) ov.addEventListener('click', function(e) { if (e.target === this) closeViewer(); });
+document.addEventListener('DOMContentLoaded',function(){
+  var ov=document.getElementById('viewer-overlay');
+  if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeViewer();});
 });
 
 </script>
 
-<!-- BRACKET VIEWER MODAL -->
 <div class="viewer-overlay" id="viewer-overlay">
   <div class="viewer-inner">
     <div class="viewer-header">

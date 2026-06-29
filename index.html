@@ -892,7 +892,10 @@ function renderKO(round){
 }
 function koLocked(){return new Date()>=KO_DEADLINE;}
 function makeKBtn(team,key,round,idx){
-  var btn=document.createElement('button');btn.className=kBtnCls(team,key,round);btn.textContent=team||'TBD';
+  var btn=document.createElement('button');
+  var cls=kBtnCls(team,key,round);
+  btn.className=cls;
+  btn.textContent=cls==='ko-btn correct'?'✓ '+(team||'TBD'):team||'TBD';
   if(!team){btn.disabled=true;return btn;}
   if(koLocked()){btn.disabled=true;return btn;}
   btn.onclick=function(){

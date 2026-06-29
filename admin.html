@@ -729,6 +729,8 @@ function scoreRound(round){
   summary.style.display='block';
   summary.textContent='✓ Scored! '+totalCorrect+' correct picks · '+totalPts+' total pts awarded this round.';
   showAlert('success','Round scored! Click "Save All Scores to Sheet" to update the leaderboard.');
+  saveKOMatchups(round);
+  saveKOResults(round);
 }
 
 function updateRoundStatus(round){
@@ -860,6 +862,14 @@ function saveKOMatchups(round){
     matchups.push([a,b]);
   });
   fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveKOMatchups',round:round,matchups:matchups})});
+}
+
+
+function saveKOResults(round){
+  if(!sheetsUrl) return;
+  var roundResults=results[round];
+  if(!roundResults||!Object.keys(roundResults).length) return;
+  fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveKOResults',round:round,results:roundResults})});
 }
 
 function saveAllScores(){

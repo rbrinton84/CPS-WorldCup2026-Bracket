@@ -647,7 +647,7 @@ var sheetsUrl='https://script.google.com/macros/s/AKfycbwZwmrr-oBOBJZq4jmG9y13x2
 
 // ── COUNTDOWN ──────────────────────────────────────────────────────
 var DEADLINE = new Date('2026-06-11T19:00:00Z'); // 3 PM ET = 19:00 UTC
-var KO_DEADLINE = new Date('2026-06-29T19:00:00Z'); // temporarily unlocked for manual entry
+var KO_DEADLINE = new Date('2026-06-28T19:00:00Z'); // 1 PM MT = 19:00 UTC Jun 28
 function updateCountdown(){
   var now=new Date(), diff=DEADLINE-now;
   if(diff<=0){
@@ -782,7 +782,7 @@ function makeGBtn(team,key){
   btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
   btn.title=team;
   var hasResult=!!(actualResults.group[key]||gResults[key]);
-  if(false){btn.disabled=true;} // temporarily unlocked
+  if(grpScored||hasResult){btn.disabled=true;}
   else if(!grpLocked){btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};}
   else{btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};}
   return btn;
@@ -972,7 +972,7 @@ function setTabComplete(round, complete){
 // ── SUBMIT ────────────────────────────────────────────────────────
 function submitPicks(){
   if(!sheetsUrl){alert('No Google Sheets URL saved. Ask your admin.');return;}
-  // if(countPicks()<103){alert('Please complete all 104 picks first.');return;} // temporarily disabled
+  if(countPicks()<103){alert('Please complete all 104 picks first.');return;}
   var payload={name:playerName,timestamp:new Date().toISOString(),groupPicks:JSON.stringify(gPicks),koPicks:JSON.stringify(koPicks),champPick:champPick,groupPoints:grpPoints};
   var btn=document.getElementById('submit-btn');
   btn.disabled=true;document.getElementById('submit-note').textContent='Submitting…';

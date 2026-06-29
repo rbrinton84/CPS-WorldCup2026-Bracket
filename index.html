@@ -688,7 +688,7 @@ function loadPreviousPicks(callback) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.found) {
-        if (data.groupPoints) { grpPoints = parseInt(data.groupPoints) || 0; }
+        if (data.groupPoints) { grpPoints = parseInt(data.groupPoints) || 0; if(grpPoints>0) grpScored=true; }
         if (data.totalPoints) { koPoints = Math.max(0,(parseInt(data.totalPoints)||0)-grpPoints); }
         // Restore group picks
         if (data.groupPicks) {

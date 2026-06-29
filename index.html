@@ -987,7 +987,7 @@ function loadLeaderboard(){
   if(!sheetsUrl)return;
   fetch(sheetsUrl+'?action=leaderboard')
     .then(function(r){return r.json();})
-    .then(function(data){renderLeaderboard(data);})
+    .then(function(data){renderLeaderboard(data);updateScore();})
     .catch(function(){document.getElementById('lb-empty').textContent='Could not load leaderboard.';});
 }
 var lbLimit = 10;

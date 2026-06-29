@@ -1009,6 +1009,13 @@ function renderLeaderboard(entries){
   lbAllEntries = entries || [];
   if(!entries||!entries.length){document.getElementById('lb-empty').style.display='block';document.getElementById('lb-rows').innerHTML='';return;}
   entries.sort(function(a,b){return b.points-a.points;});
+  // Update koPoints from leaderboard total
+  entries.forEach(function(e){
+    if(e.name===playerName&&e.points>0){
+      koPoints=Math.max(0,e.points-grpPoints);
+      updateScore();
+    }
+  });
   document.getElementById('lb-empty').style.display='none';
   var wrap=document.getElementById('lb-rows');wrap.innerHTML='';
   entries.slice(0,lbLimit).forEach(function(e,i){

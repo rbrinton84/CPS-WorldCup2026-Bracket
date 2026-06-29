@@ -934,8 +934,8 @@ function updateScore(){
   document.getElementById('prog-fill').style.width=Math.round(made/103*100)+'%';
   document.getElementById('prog-label').textContent=made+' / 103 picks';
   document.getElementById('tile-grp').textContent=grpPoints;
-  document.getElementById('tile-ko').textContent=grpScored?'in progress':'—';
-  document.getElementById('tile-total').textContent=grpPoints;
+  document.getElementById('tile-ko').textContent=koPoints>0?koPoints:(grpPoints>0)?'in progress':'—';
+  document.getElementById('tile-total').textContent=grpPoints+koPoints;
   updateTabCompletion();
 }
 

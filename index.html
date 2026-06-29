@@ -298,13 +298,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .viewer-header{background:#000;border:1px solid var(--accent);border-radius:10px;padding:14px 20px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:1rem;z-index:10;box-shadow:0 0 20px rgba(0,0,0,0.8);}
 .viewer-title{font-family:var(--font-display);font-size:1.3em;font-weight:700;color:var(--accent);letter-spacing:.04em;}
 .viewer-meta{font-size:13px;color:var(--ink3);font-family:var(--font-semi);}
-.viewer-close{font-family:var(--font-display);font-size:16px;font-weight:700;padding:8px 18px;border-radius:6px;background:var(--accent);color:#000;border:none;cursor:pointer;letter-spacing:.05em;}
+.viewer-close{font-family:var(--font-display);font-size:16px;font-weight:700;padding:8px 18px;border-radius:6px;background:var(--accent);color:#000;border:none;cursor:pointer;}
 .viewer-close:hover{background:var(--accent2);}
 .viewer-champ{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;font-family:var(--font-semi);font-size:15px;color:var(--gold);}
 .viewer-loading{text-align:center;padding:3rem;color:var(--ink3);font-family:var(--font-semi);font-size:15px;}
 .lb-name.clickable{cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted;}
 .lb-name.clickable:hover{color:var(--accent2);}
-
 </style>
 </head>
 <body>
@@ -646,8 +645,8 @@ var sheetsUrl='https://script.google.com/macros/s/AKfycbwZwmrr-oBOBJZq4jmG9y13x2
 
 
 // ── COUNTDOWN ──────────────────────────────────────────────────────
-var DEADLINE = new Date('2026-06-11T19:00:00Z'); // 3 PM ET = 19:00 UTC
-var KO_DEADLINE = new Date('2026-06-28T19:00:00Z'); // 1 PM MT = 19:00 UTC Jun 28
+var DEADLINE = new Date('2026-06-11T19:00:00Z');
+var KO_DEADLINE = new Date('2026-06-28T19:00:00Z'); // 1 PM MT Jun 28
 function updateCountdown(){
   var now=new Date(), diff=DEADLINE-now;
   if(diff<=0){
@@ -667,6 +666,38 @@ updateCountdown();
 setInterval(updateCountdown,1000);
 
 // ── ENTER ──────────────────────────────────────────────────────────
+function loadActualResults() {
+  if (!sheetsUrl) return;
+  fetch(sheetsUrl + '?action=getScoredMatches&_t=' + new Date().getTime())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.scoredMatches) {
+        try {
+          var parsed = JSON.parse(data.scoredMatches);
+          if (Object.keys(parsed).length > 0) {
+            actualResults.group = parsed;
+            grpScored = true;
+            renderGroups();
+            updateScore();
+          }
+        } catch(e) {}
+      }
+      if (data && data.koResults) {
+        try {
+          var kr = JSON.parse(data.koResults);
+          ['r32','r16','qf','sf','final'].forEach(function(r){
+            if(kr[r]) actualResults[r]=kr[r];
+          });
+          ['r32','r16','qf','sf','final'].forEach(function(r){
+            var sec=document.getElementById('sec-'+r);
+            if(sec&&sec.classList.contains('active'))renderKO(r);
+          });
+        } catch(e) {}
+      }
+    })
+    .catch(function() {});
+}
+
 function enterBracket(){
   var n=document.getElementById('name-input').value.trim();
   if(!n){document.getElementById('name-input').focus();return;}
@@ -688,8 +719,8 @@ function loadPreviousPicks(callback) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.found) {
-        if (data.groupPoints) { grpPoints = parseInt(data.groupPoints) || 0; if(grpPoints>0) grpScored=true; }
-        if (data.totalPoints) { koPoints = Math.max(0,(parseInt(data.totalPoints)||0)-grpPoints); }
+        if(data.groupPoints){grpPoints=parseInt(data.groupPoints)||0;if(grpPoints>0)grpScored=true;}
+        if(data.totalPoints){koPoints=Math.max(0,(parseInt(data.totalPoints)||0)-grpPoints);}
         // Restore group picks
         if (data.groupPicks) {
           try { gPicks = JSON.parse(data.groupPicks); } catch(e) { gPicks = {}; }
@@ -745,7 +776,7 @@ function mkey(g,a,b){return g+'|'+a+'|'+b;}
 function gBtnCls(team,key){
   var pick=gPicks[key]||'';
   var result=actualResults.group[key]||gResults[key]||'';
-  if(grpScored&&result){
+  if((grpScored||grpPoints>0)&&result){
     if(result==='__draw__'){if(pick===team)return 'pick-btn correct';return 'pick-btn';}
     if(team===pick&&team===result)return 'pick-btn correct';
     if(team===pick&&team!==result)return 'pick-btn wrong';
@@ -812,32 +843,14 @@ function scoreGroupStage(){
 
 // ── KNOCKOUT ──────────────────────────────────────────────────────
 var BRACKET_FEED={
-  r16:[
-    ['r32_1','r32_4'],   // R16-0: M89 W74 vs W77
-    ['r32_0','r32_2'],   // R16-1: M90 W73 vs W75
-    ['r32_3','r32_5'],   // R16-2: M91 W76 vs W78
-    ['r32_6','r32_7'],   // R16-3: M92 W79 vs W80
-    ['r32_10','r32_11'], // R16-4: M93 W83 vs W84
-    ['r32_8','r32_9'],   // R16-5: M94 W81 vs W82
-    ['r32_13','r32_15'], // R16-6: M95 W86 vs W88
-    ['r32_12','r32_14'], // R16-7: M96 W85 vs W87
-  ],
-  qf:[
-    ['r16_0','r16_1'],   // QF-0: M97
-    ['r16_4','r16_5'],   // QF-1: M98
-    ['r16_2','r16_3'],   // QF-2: M99
-    ['r16_6','r16_7'],   // QF-3: M100
-  ],
+  r16:[['r32_1','r32_4'],['r32_0','r32_2'],['r32_3','r32_5'],['r32_6','r32_7'],['r32_10','r32_11'],['r32_8','r32_9'],['r32_13','r32_15'],['r32_12','r32_14']],
+  qf:[['r16_0','r16_1'],['r16_4','r16_5'],['r16_2','r16_3'],['r16_6','r16_7']],
   sf:[['qf_0','qf_1'],['qf_2','qf_3']],
   final:[['sf_0','sf_1']]
 };
 function getKOTeams(round){
-  if(round==='r32'){
-    if(realAdvancingTeams.length>0)return realAdvancingTeams.slice();
-    return advTeams.slice();
-  }
-  var feed=BRACKET_FEED[round];
-  if(!feed)return [];
+  if(round==='r32'){if(realAdvancingTeams.length>0)return realAdvancingTeams.slice();return advTeams.slice();}
+  var feed=BRACKET_FEED[round];if(!feed)return [];
   var out=[];
   feed.forEach(function(pair){
     out.push(koPicks[pair[0].split('_')[0]][pair[0]]||null);
@@ -1004,14 +1017,10 @@ function renderLeaderboard(entries){
     var initials=e.name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
     var rankEl=document.createElement('div');rankEl.className='lb-rank';rankEl.textContent=i+1;
     var avatarEl=document.createElement('div');avatarEl.className='lb-avatar';avatarEl.textContent=initials;
-    var nameEl=document.createElement('div');
-    nameEl.className='lb-name'+(e.name===playerName?'':' clickable');
-    nameEl.textContent=e.name;
+    var nameEl=document.createElement('div');nameEl.className='lb-name'+(e.name===playerName?'':' clickable');nameEl.textContent=e.name;
     if(e.name!==playerName){(function(n){nameEl.onclick=function(){viewBracket(n);};})(e.name);}
-    var champEl=document.createElement('div');champEl.className='lb-champ';
-    champEl.textContent=e.champPick?'🏆 '+e.champPick:'No champion yet';
-    var infoEl=document.createElement('div');infoEl.className='lb-info';
-    infoEl.appendChild(nameEl);infoEl.appendChild(champEl);
+    var champEl=document.createElement('div');champEl.className='lb-champ';champEl.textContent=e.champPick?'🏆 '+e.champPick:'No champion yet';
+    var infoEl=document.createElement('div');infoEl.className='lb-info';infoEl.appendChild(nameEl);infoEl.appendChild(champEl);
     var ptsEl=document.createElement('div');ptsEl.className='lb-pts';ptsEl.textContent=e.points;
     row.appendChild(rankEl);row.appendChild(avatarEl);row.appendChild(infoEl);row.appendChild(ptsEl);
     wrap.appendChild(row);
@@ -1034,7 +1043,6 @@ function resetAll(){
 
 // ── LOAD REAL ADVANCING TEAMS FROM SHEET ─────────────────────────
 var realAdvancingTeams = [];
-var KO_UNLOCK_DATE = new Date('2026-06-27T00:00:00Z');
 function knockoutUnlockable(){return true;}
 
 // Knockout tabs unlock after group stage ends (June 27, 2026) AND real teams are available
@@ -1054,10 +1062,7 @@ function loadAdvancingTeams() {
     .then(function(data){
       if(data&&data.r32&&data.r32.length>=2){
         realAdvancingTeams=[];
-        data.r32.forEach(function(pair){
-          realAdvancingTeams.push(pair[0]||null);
-          realAdvancingTeams.push(pair[1]||null);
-        });
+        data.r32.forEach(function(pair){realAdvancingTeams.push(pair[0]||null);realAdvancingTeams.push(pair[1]||null);});
         ['r32','r16','qf','sf','final'].forEach(function(r){
           var sec=document.getElementById('sec-'+r);
           if(sec&&sec.classList.contains('active'))renderKO(r);
@@ -1065,7 +1070,7 @@ function loadAdvancingTeams() {
       }
     }).catch(function(){});
 }
-function loadAdvancingTeams_unused() {
+function loadAdvancingTeams_old() {
   if (!sheetsUrl) return;
   fetch(sheetsUrl + '?action=advancingTeams')
     .then(function(r) { return r.json(); })
@@ -1287,27 +1292,24 @@ function setLang(lang) {
 }
 
 
-function loadActualResultsUnused(){}
 function viewBracket(name){
   if(!name||name===playerName)return;
   var overlay=document.getElementById('viewer-overlay');
-  var loading=document.getElementById('viewer-loading');
-  var groupsDiv=document.getElementById('viewer-groups');
   document.getElementById('viewer-name').textContent=name+"'s Bracket";
   document.getElementById('viewer-pts').textContent='…';
   document.getElementById('viewer-champ').textContent='';
-  loading.style.display='block';groupsDiv.style.display='none';
+  document.getElementById('viewer-loading').style.display='block';
+  document.getElementById('viewer-groups').style.display='none';
   overlay.classList.add('active');document.body.style.overflow='hidden';
   fetch(sheetsUrl+'?action=getPicks&name='+encodeURIComponent(name))
     .then(function(r){return r.json();})
     .then(function(data){
-      loading.style.display='none';
-      if(!data||!data.found){loading.textContent='No bracket found for '+name;loading.style.display='block';return;}
-      var theirPicks={};
-      try{theirPicks=JSON.parse(data.groupPicks||'{}');}catch(e){}
+      document.getElementById('viewer-loading').style.display='none';
+      if(!data||!data.found){document.getElementById('viewer-loading').textContent='No bracket found.';document.getElementById('viewer-loading').style.display='block';return;}
+      var theirPicks={};try{theirPicks=JSON.parse(data.groupPicks||'{}');}catch(e){}
       document.getElementById('viewer-pts').textContent=parseInt(data.groupPoints)||0;
-      document.getElementById('viewer-champ').textContent=data.champPick?'🏆 Champion pick: '+data.champPick:'No champion pick yet';
-      groupsDiv.innerHTML='';groupsDiv.style.display='grid';
+      document.getElementById('viewer-champ').textContent=data.champPick?'🏆 Champion: '+data.champPick:'No champion pick';
+      var groupsDiv=document.getElementById('viewer-groups');groupsDiv.innerHTML='';groupsDiv.style.display='grid';
       Object.keys(GROUPS).forEach(function(g){
         var card=document.createElement('div');card.className='group-card';
         var head=document.createElement('div');head.className='group-heading';
@@ -1323,12 +1325,10 @@ function viewBracket(name){
             if(result){
               if(result==='__draw__'){if(pick===team)cls='pick-btn correct';}
               else if(team===pick&&team===result)cls='pick-btn correct';
-              else if(team===pick&&team!==result)cls='pick-btn wrong';
+              else if(team===pick)cls='pick-btn wrong';
               else if(team===result)cls='pick-btn result-shown';
-              else if(team===pick)cls='pick-btn picked';
             }else if(team===pick)cls='pick-btn picked';
-            btn.className=cls;
-            btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
+            btn.className=cls;btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
             row.appendChild(btn);
             if(team===a){var vs=document.createElement('span');vs.className='vs-sep';vs.textContent='vs';row.appendChild(vs);}
           });
@@ -1336,33 +1336,20 @@ function viewBracket(name){
         });
         groupsDiv.appendChild(card);
       });
-    })
-    .catch(function(){loading.textContent='Could not load bracket. Try again.';loading.style.display='block';});
+    }).catch(function(){document.getElementById('viewer-loading').textContent='Could not load.';document.getElementById('viewer-loading').style.display='block';});
 }
-function closeViewer(){
-  document.getElementById('viewer-overlay').classList.remove('active');
-  document.body.style.overflow='';
-}
+function closeViewer(){document.getElementById('viewer-overlay').classList.remove('active');document.body.style.overflow='';}
 document.addEventListener('DOMContentLoaded',function(){
   var ov=document.getElementById('viewer-overlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeViewer();});
 });
 
 </script>
-
-<div class="viewer-overlay" id="viewer-overlay">
-  <div class="viewer-inner">
-    <div class="viewer-header">
-      <div>
-        <div class="viewer-title" id="viewer-name">—</div>
-        <div class="viewer-meta">Read-only view · <span id="viewer-pts">0</span> pts</div>
-      </div>
-      <button class="viewer-close" onclick="closeViewer()">✕ Close</button>
-    </div>
-    <div class="viewer-champ" id="viewer-champ"></div>
-    <div id="viewer-loading" class="viewer-loading">Loading bracket…</div>
-    <div id="viewer-groups" class="groups-grid" style="display:none;"></div>
-  </div>
-</div>
+<div class="viewer-overlay" id="viewer-overlay"><div class="viewer-inner">
+  <div class="viewer-header"><div><div class="viewer-title" id="viewer-name">—</div><div class="viewer-meta">Read-only · <span id="viewer-pts">0</span> pts</div></div><button class="viewer-close" onclick="closeViewer()">✕ Close</button></div>
+  <div class="viewer-champ" id="viewer-champ"></div>
+  <div id="viewer-loading" class="viewer-loading">Loading…</div>
+  <div id="viewer-groups" class="groups-grid" style="display:none;"></div>
+</div></div>
 </body>
 </html>

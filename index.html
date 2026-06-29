@@ -782,7 +782,7 @@ function makeGBtn(team,key){
   btn.textContent=cls==='pick-btn correct'?'✓ '+team:team;
   btn.title=team;
   var hasResult=!!(actualResults.group[key]||gResults[key]);
-  if(grpScored||hasResult){btn.disabled=true;}
+  if(false){btn.disabled=true;} // temporarily unlocked
   else if(!grpLocked){btn.onclick=function(){gPicks[key]=(gPicks[key]===team?'':team);renderGroups();updateScore();};}
   else{btn.onclick=function(){gResults[key]=(gResults[key]===team?'':team);renderGroups();};}
   return btn;
@@ -972,7 +972,7 @@ function setTabComplete(round, complete){
 // ── SUBMIT ────────────────────────────────────────────────────────
 function submitPicks(){
   if(!sheetsUrl){alert('No Google Sheets URL saved. Ask your admin.');return;}
-  if(countPicks()<103){alert('Please complete all 104 picks first.');return;}
+  // if(countPicks()<103){alert('Please complete all 104 picks first.');return;} // temporarily disabled
   var payload={name:playerName,timestamp:new Date().toISOString(),groupPicks:JSON.stringify(gPicks),koPicks:JSON.stringify(koPicks),champPick:champPick,groupPoints:grpPoints};
   var btn=document.getElementById('submit-btn');
   btn.disabled=true;document.getElementById('submit-note').textContent='Submitting…';

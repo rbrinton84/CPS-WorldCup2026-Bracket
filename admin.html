@@ -389,7 +389,10 @@ function connectSheets(){
       buildGroupMatches();
       buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
       buildKOMatches('sf',2);buildKOMatches('final',1);
-      setTimeout(loadKOMatchups, 500);
+      setTimeout(function(){
+        loadKOMatchups();
+        loadKOResults();
+      }, 500);
     });
   });
 }
@@ -864,6 +867,89 @@ function saveKOMatchups(round){
   fetch(sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'saveKOMatchups',round:round,matchups:matchups})});
 }
 
+
+
+var koResultsLoaded={r32:{},r16:{},qf:{},sf:{},final:{}};
+
+function loadKOResults(){
+  if(!sheetsUrl) return;
+  fetch(sheetsUrl+'?action=getScoredMatches&_t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!data||!data.koResults) return;
+      var kr={};
+      try{kr=JSON.parse(data.koResults);}catch(e){}
+      ['r32','r16','qf','sf','final'].forEach(function(round){
+        if(kr[round]){
+          koResultsLoaded[round]=kr[round];
+          Object.keys(kr[round]).forEach(function(k){
+            results[round][k]=kr[round][k];
+            roundScored[round]=true;
+          });
+          updateRoundStatus(round);
+        }
+      });
+      // Rebuild KO match cards to show locked state and re-apply winner buttons
+      buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
+      buildKOMatches('sf',2);buildKOMatches('final',1);
+      setTimeout(function(){
+        loadKOMatchups();
+        reapplyKOWinnerButtons();
+        autoPopulateR16FromR32();
+      },300);
+      if(Object.keys(kr).length>0) showAlert('success','✓ Loaded previous knockout results — already-scored rounds are marked.');
+    })
+    .catch(function(){});
+}
+
+function reapplyKOWinnerButtons(){
+  ['r32','r16','qf','sf','final'].forEach(function(round){
+    var grid=document.getElementById(round+'-matches');
+    if(!grid) return;
+    var cards=grid.querySelectorAll('.match-card');
+    cards.forEach(function(card,idx){
+      var key=round+'_'+idx;
+      var winner=results[round][key];
+      if(!winner) return;
+      var buttons=card.querySelectorAll('.result-btn');
+      buttons.forEach(function(btn){
+        if(btn.textContent.trim()===winner){btn.classList.add('winner');}
+      });
+    });
+  });
+}
+
+var KO_BRACKET_FEED={
+  r16:[['r32_1','r32_4'],['r32_0','r32_2'],['r32_3','r32_5'],['r32_6','r32_7'],
+       ['r32_10','r32_11'],['r32_8','r32_9'],['r32_13','r32_15'],['r32_12','r32_14']],
+  qf:[['r16_0','r16_1'],['r16_4','r16_5'],['r16_2','r16_3'],['r16_6','r16_7']],
+  sf:[['qf_0','qf_1'],['qf_2','qf_3']],
+  final:[['sf_0','sf_1']]
+};
+
+function autoPopulateKOFromPrevious(round){
+  var feed=KO_BRACKET_FEED[round];
+  if(!feed) return;
+  var grid=document.getElementById(round+'-matches');
+  if(!grid) return;
+  var cards=grid.querySelectorAll('.match-card');
+  feed.forEach(function(pair,idx){
+    var prevRound=pair[0].split('_')[0];
+    var a=results[prevRound][pair[0]]||'';
+    var b=results[prevRound][pair[1]]||'';
+    if(!cards[idx]) return;
+    var inputs=cards[idx].querySelectorAll('input[type=text]');
+    if(inputs[0]&&a&&!inputs[0].value){inputs[0].value=a;inputs[0].dispatchEvent(new Event('input'));}
+    if(inputs[1]&&b&&!inputs[1].value){inputs[1].value=b;inputs[1].dispatchEvent(new Event('input'));}
+  });
+}
+
+function autoPopulateR16FromR32(){
+  autoPopulateKOFromPrevious('r16');
+  autoPopulateKOFromPrevious('qf');
+  autoPopulateKOFromPrevious('sf');
+  autoPopulateKOFromPrevious('final');
+}
 
 function saveKOResults(round){
   if(!sheetsUrl) return;

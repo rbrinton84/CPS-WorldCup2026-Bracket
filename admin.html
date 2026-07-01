@@ -802,6 +802,30 @@ var R32_SCHEDULE=[
   {matchup:'M88: 2nd D vs 2nd G',date:'Fri Jul 3',time:'12:00 PM MT',venue:'Dallas'},
 ];
 
+function loadKOMatchupsWithCallback(callback){
+  if(!sheetsUrl){if(callback)callback();return;}
+  fetch(sheetsUrl+'?action=getKOMatchups&_t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!data)return;
+      var rounds=['r32','r16','qf','sf','final'];
+      rounds.forEach(function(round){
+        var matchups=data[round];
+        if(!matchups||!matchups.length)return;
+        var grid=document.getElementById(round+'-matches');
+        if(!grid)return;
+        var cards=grid.querySelectorAll('.match-card');
+        matchups.forEach(function(pair,idx){
+          if(!cards[idx])return;
+          var inputs=cards[idx].querySelectorAll('input[type=text]');
+          if(inputs[0]&&pair[0]){inputs[0].value=pair[0];inputs[0].dispatchEvent(new Event('input'));}
+          if(inputs[1]&&pair[1]){inputs[1].value=pair[1];inputs[1].dispatchEvent(new Event('input'));}
+        });
+      });
+      if(callback)setTimeout(callback,200);
+    }).catch(function(){if(callback)callback();});
+}
+
 function loadKOMatchups(){
   if(!sheetsUrl) return;
   fetch(sheetsUrl+'?action=getKOMatchups')
@@ -905,14 +929,14 @@ function processKOResults(data){
           updateRoundStatus(round);
         }
       });
-      // Rebuild KO match cards to show locked state and re-apply winner buttons
+      // Rebuild KO match cards then load matchups, then reapply winners
       buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
       buildKOMatches('sf',2);buildKOMatches('final',1);
-      setTimeout(function(){
-        loadKOMatchups();
+      // Load matchups first (async), then reapply winners after they populate
+      loadKOMatchupsWithCallback(function(){
         reapplyKOWinnerButtons();
         autoPopulateR16FromR32();
-      },300);
+      });
       if(Object.keys(kr).length>0) showAlert('success','✓ Loaded previous knockout results — already-scored rounds are marked.');
 }
 

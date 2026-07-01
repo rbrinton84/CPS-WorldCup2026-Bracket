@@ -949,10 +949,32 @@ function reapplyKOWinnerButtons(){
       var key=round+'_'+idx;
       var winner=results[round][key];
       if(!winner) return;
+      // Try to match by button text
       var buttons=card.querySelectorAll('.result-btn');
+      var matched=false;
       buttons.forEach(function(btn){
-        if(btn.textContent.trim()===winner){btn.classList.add('winner');}
+        if(btn.textContent.trim()===winner){btn.classList.add('winner');matched=true;}
       });
+      // If no match yet (teams not loaded), add a scored tag to the card
+      if(!matched){
+        var existing=card.querySelector('.match-scored-tag');
+        if(!existing){
+          var lbl=card.querySelector('.match-label');
+          if(lbl){
+            var tag=document.createElement('span');
+            tag.className='match-scored-tag';
+            tag.textContent='✓ '+winner;
+            lbl.appendChild(tag);
+          }
+        }
+        // Try again after a delay once inputs fire
+        setTimeout(function(){
+          var btns=card.querySelectorAll('.result-btn');
+          btns.forEach(function(btn){
+            if(btn.textContent.trim()===winner){btn.classList.add('winner');}
+          });
+        },1000);
+      }
     });
   });
 }

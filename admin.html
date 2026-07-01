@@ -919,25 +919,26 @@ function processKOResults(data){
       if(!data||!data.koResults) return;
       var kr={};
       try{kr=JSON.parse(data.koResults);}catch(e){}
-      ['r32','r16','qf','sf','final'].forEach(function(round){
-        if(kr[round]){
-          koResultsLoaded[round]=kr[round];
-          Object.keys(kr[round]).forEach(function(k){
-            results[round][k]=kr[round][k];
-            roundScored[round]=true;
-          });
-          updateRoundStatus(round);
-        }
-      });
-      // Rebuild KO match cards then load matchups, then reapply winners
+      if(!Object.keys(kr).length) return;
+      // Rebuild cards first, then load matchups, then restore results and highlight
       buildKOMatches('r32',16);buildKOMatches('r16',8);buildKOMatches('qf',4);
       buildKOMatches('sf',2);buildKOMatches('final',1);
-      // Load matchups first (async), then reapply winners after they populate
       loadKOMatchupsWithCallback(function(){
+        // NOW restore results AFTER team names are in the buttons
+        ['r32','r16','qf','sf','final'].forEach(function(round){
+          if(kr[round]){
+            koResultsLoaded[round]=kr[round];
+            Object.keys(kr[round]).forEach(function(k){
+              results[round][k]=kr[round][k];
+              roundScored[round]=true;
+            });
+            updateRoundStatus(round);
+          }
+        });
         reapplyKOWinnerButtons();
         autoPopulateR16FromR32();
+        showAlert('success','✓ Loaded previous knockout results.');
       });
-      if(Object.keys(kr).length>0) showAlert('success','✓ Loaded previous knockout results — already-scored rounds are marked.');
 }
 
 function reapplyKOWinnerButtons(){

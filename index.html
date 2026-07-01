@@ -1310,15 +1310,22 @@ function viewBracket(name){
   document.getElementById('viewer-champ').textContent='';
   document.getElementById('viewer-loading').style.display='block';
   document.getElementById('viewer-groups').style.display='none';
+  var vkoDiv=document.getElementById('viewer-ko');
+  if(vkoDiv)vkoDiv.style.display='none';
   overlay.classList.add('active');document.body.style.overflow='hidden';
   fetch(sheetsUrl+'?action=getPicks&name='+encodeURIComponent(name))
     .then(function(r){return r.json();})
     .then(function(data){
       document.getElementById('viewer-loading').style.display='none';
       if(!data||!data.found){document.getElementById('viewer-loading').textContent='No bracket found.';document.getElementById('viewer-loading').style.display='block';return;}
-      var theirPicks={};try{theirPicks=JSON.parse(data.groupPicks||'{}');}catch(e){}
-      document.getElementById('viewer-pts').textContent=parseInt(data.groupPoints)||0;
+      var theirGrpPicks={};try{theirGrpPicks=JSON.parse(data.groupPicks||'{}');}catch(e){}
+      var theirKOPicks={r32:{},r16:{},qf:{},sf:{},final:{}};
+      try{var kp=JSON.parse(data.koPicks||'{}');KO_ROUNDS.forEach(function(r){theirKOPicks[r]=kp[r]||{};});}catch(e){}
+      var totalPts=(parseInt(data.totalPoints)||0);
+      document.getElementById('viewer-pts').textContent=totalPts;
       document.getElementById('viewer-champ').textContent=data.champPick?'🏆 Champion: '+data.champPick:'No champion pick';
+
+      // ── GROUP STAGE ──
       var groupsDiv=document.getElementById('viewer-groups');groupsDiv.innerHTML='';groupsDiv.style.display='grid';
       Object.keys(GROUPS).forEach(function(g){
         var card=document.createElement('div');card.className='group-card';
@@ -1327,7 +1334,7 @@ function viewBracket(name){
         head.appendChild(letter);head.appendChild(document.createTextNode(' Group '+g));card.appendChild(head);
         getGroupMatches(GROUPS[g]).forEach(function(pair){
           var a=pair[0],b=pair[1],key=mkey(g,a,b);
-          var pick=theirPicks[key]||'',result=actualResults.group[key]||'';
+          var pick=theirGrpPicks[key]||'',result=actualResults.group[key]||'';
           var row=document.createElement('div');row.className='g-match';
           [a,b].forEach(function(team){
             var btn=document.createElement('button');btn.title=team;btn.disabled=true;
@@ -1346,6 +1353,62 @@ function viewBracket(name){
         });
         groupsDiv.appendChild(card);
       });
+
+      // ── KO ROUNDS ──
+      if(!vkoDiv)return;
+      vkoDiv.innerHTML='';vkoDiv.style.display='block';
+      KO_ROUNDS.forEach(function(round){
+        var teams=[];
+        if(round==='r32'){
+          teams=realAdvancingTeams.slice();
+        } else {
+          var feed=BRACKET_FEED[round];
+          if(feed)feed.forEach(function(pair){
+            teams.push(theirKOPicks[pair[0].split('_')[0]][pair[0]]||null);
+            teams.push(theirKOPicks[pair[1].split('_')[0]][pair[1]]||null);
+          });
+        }
+        var count=KO_COUNT[round];
+        var sec=document.createElement('div');sec.style.cssText='margin-top:1.25rem;';
+        var hdr=document.createElement('div');
+        hdr.style.cssText='font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);';
+        hdr.textContent=KO_LABELS[round];
+        sec.appendChild(hdr);
+        var grid=document.createElement('div');grid.className='ko-grid';
+        for(var i=0;i<count;i++){
+          (function(idx){
+            var a=teams[idx*2]||null,b=teams[idx*2+1]||null;
+            var key=round+'_'+idx;
+            var pick=theirKOPicks[round][key]||'';
+            var result=(actualResults[round]&&actualResults[round][key])||'';
+            var card=document.createElement('div');card.className='ko-card';
+            var head=document.createElement('div');head.className='ko-card-head';
+            var lbl=document.createElement('span');lbl.className='ko-match-lbl';lbl.textContent=KO_LABELS[round]+' · '+(idx+1);
+            var pts=document.createElement('span');pts.className='ko-pts-tag';pts.textContent=KO_PTS[round]+' pts';
+            head.appendChild(lbl);head.appendChild(pts);card.appendChild(head);
+            var matchDiv=document.createElement('div');matchDiv.className='ko-match';
+            [a,b].forEach(function(team){
+              var btn=document.createElement('button');btn.disabled=true;
+              var cls='ko-btn';
+              if(!team){cls='ko-btn tbd';btn.textContent='TBD';}
+              else{
+                btn.textContent=team;
+                if(result){
+                  if(team===pick&&team===result){cls='ko-btn correct';btn.textContent='✓ '+team;}
+                  else if(team===pick&&team!==result)cls='ko-btn wrong';
+                  else if(team===result)cls='ko-btn result-shown';
+                  else if(team===pick)cls='ko-btn picked';
+                }else if(team===pick)cls='ko-btn picked';
+              }
+              btn.className=cls;
+              matchDiv.appendChild(btn);
+              if(team===a){var vs=document.createElement('span');vs.className='vs-sep';vs.textContent='vs';matchDiv.appendChild(vs);}
+            });
+            card.appendChild(matchDiv);grid.appendChild(card);
+          })(i);
+        }
+        sec.appendChild(grid);vkoDiv.appendChild(sec);
+      });
     }).catch(function(){document.getElementById('viewer-loading').textContent='Could not load.';document.getElementById('viewer-loading').style.display='block';});
 }
 function closeViewer(){document.getElementById('viewer-overlay').classList.remove('active');document.body.style.overflow='';}
@@ -1360,6 +1423,7 @@ document.addEventListener('DOMContentLoaded',function(){
   <div class="viewer-champ" id="viewer-champ"></div>
   <div id="viewer-loading" class="viewer-loading">Loading…</div>
   <div id="viewer-groups" class="groups-grid" style="display:none;"></div>
+  <div id="viewer-ko" style="display:none;"></div>
 </div></div>
 </body>
 </html>

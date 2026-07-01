@@ -873,9 +873,25 @@ var koResultsLoaded={r32:{},r16:{},qf:{},sf:{},final:{}};
 
 function loadKOResults(){
   if(!sheetsUrl) return;
-  fetch(sheetsUrl+'?action=getScoredMatches&_t='+Date.now())
+  fetch(sheetsUrl,{method:'POST',body:JSON.stringify({action:'getScoredMatchesPost'})})
     .then(function(r){return r.json();})
     .then(function(data){
+      if(!data) return;
+      // Also try GET for koResults since POST may not have it
+      fetch(sheetsUrl+'?action=getScoredMatches&_t='+Date.now())
+        .then(function(r2){return r2.json();})
+        .then(function(data2){
+          processKOResults(data2);
+        }).catch(function(){});
+    }).catch(function(){
+      fetch(sheetsUrl+'?action=getScoredMatches&_t='+Date.now())
+        .then(function(r){return r.json();})
+        .then(function(data){processKOResults(data);})
+        .catch(function(){});
+    });
+}
+
+function processKOResults(data){
       if(!data||!data.koResults) return;
       var kr={};
       try{kr=JSON.parse(data.koResults);}catch(e){}
@@ -898,8 +914,6 @@ function loadKOResults(){
         autoPopulateR16FromR32();
       },300);
       if(Object.keys(kr).length>0) showAlert('success','✓ Loaded previous knockout results — already-scored rounds are marked.');
-    })
-    .catch(function(){});
 }
 
 function reapplyKOWinnerButtons(){
